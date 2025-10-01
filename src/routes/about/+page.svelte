@@ -1,66 +1,53 @@
 <script>
 	import BackgroundComponent from '$lib/components/BackgroundComponent.svelte';
+	import { storage } from '$lib/services/firebase.client';
+	import { ref, getDownloadURL } from 'firebase/storage';
+	import { onMount } from 'svelte';
 
-	const pfp_mark_lee = '/pfps/Mark_Lee_PublicationManager.png';
-	const pfp_zach_fischer = '/pfps/Zach_Fischer_Webmaster.png';
-	const pfp_aadi_ajmire = '/pfps/Aadi_Ajmire_Interviewer.png';
-	const pfp_jonny_dippery = '/pfps/Jonny_Dippery_Writer.jpg';
-	const pfp_ting_wu = '/pfps/Ting_Wu_Analyst.png';
-	const pfp_abby_lin = '/pfps/Abby_Lin_Author.jpeg';
-	const pfp_varun_sekar = '/pfps/Varun_Sekar_TechAnalyst.jpeg';
-	const pfp_sofia_mendoza = '/pfps/Sofia_Mendoza_Analyst.JPG';
-	const pfp_wyatt_grover = '/pfps/Wyatt_Grover_AssistantWebmaster.JPG';
+	export let data;
 
-	const team = [
-		{
-			name: 'Zach Fischer',
-			profilePic: pfp_zach_fischer,
-			linkedin: 'https://www.linkedin.com/in/zfischer42/',
-			title: 'Webmaster'
-		},
-		{
-			name: 'Aadi Ajmire',
-			profilePic: pfp_aadi_ajmire,
-			linkedin: 'https://www.linkedin.com/in/aadi-ajmire-077148206/',
-			title: 'Interviewer'
-		},
-		{
-			name: 'Jonny Dippery',
-			profilePic: pfp_jonny_dippery,
-			linkedin: 'https://www.linkedin.com/in/jonathan-dippery/',
-			title: 'Author'
-		},
-		{
-			name: 'Xiangting Wu',
-			profilePic: pfp_ting_wu,
-			linkedin: 'https://www.linkedin.com/in/xiangting-wu-6a38a6223/',
-			title: 'Analyst'
-		},
-		{
-			name: 'Abby Lin',
-			profilePic: pfp_abby_lin,
-			linkedin: 'https://www.instagram.com/abs1626productions/',
-			title: 'Author'
-		},
-		{
-			name: 'Varun Sekar',
-			profilePic: pfp_varun_sekar,
-			linkedin: 'https://www.linkedin.com/in/varun-sekar-2b2247339/',
-			title: 'Tech Analyst'
-		},
-		{
-			name: 'Sofia Mendoza',
-			profilePic: pfp_sofia_mendoza,
-			linkedin: 'https://www.linkedin.com/in/sofia-mendoza-766325344/',
-			title: 'Analyst'
-		},
-		{
-			name: 'Wyatt Grover',
-			profilePic: pfp_wyatt_grover,
-			linkedin: 'https://www.linkedin.com/in/wyatt-grover-6b764122a/',
-			title: 'Assistant Webmaster'
-		}
-	];
+	let currentAuthorsWithImages = [];
+	let pastAuthorsWithImages = [];
+
+	onMount(async () => {
+		// Load profile images for current authors
+		currentAuthorsWithImages = await Promise.all(
+			data.currentAuthors.map(async (author) => {
+				let profilePic = '';
+				if (author.pfp) {
+					try {
+						const imageRef = ref(storage, author.pfp);
+						profilePic = await getDownloadURL(imageRef);
+					} catch (error) {
+						console.error('Error loading author image:', error);
+					}
+				}
+				return {
+					...author,
+					profilePic
+				};
+			})
+		);
+
+		// Load profile images for past authors
+		pastAuthorsWithImages = await Promise.all(
+			data.pastAuthors.map(async (author) => {
+				let profilePic = '';
+				if (author.pfp) {
+					try {
+						const imageRef = ref(storage, author.pfp);
+						profilePic = await getDownloadURL(imageRef);
+					} catch (error) {
+						console.error('Error loading author image:', error);
+					}
+				}
+				return {
+					...author,
+					profilePic
+				};
+			})
+		);
+	});
 </script>
 
 <!-- ABOUT PAGE -->
@@ -94,15 +81,21 @@
 	<div class="p-5 rounded-xl bg-white/85 border mb-8">
 		<p class="text-4xl font-bold mb-4">Meet the Team</p>
 
-		<div class="flex flex-wrap justify-center gap-4">
-			{#each team as member}
+		<div class="flex flex-wrap justify-center gap-2">
+			{#each currentAuthorsWithImages as member}
 				<a href={member.linkedin} target="_blank" class="hover:bg-blue">
 					<div
 						class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
 					>
 						<div class="mx-auto avatar mb-1">
 							<div class="w-24 rounded-full">
-								<img src={member.profilePic} alt="{member.name} profile pic" />
+								{#if member.profilePic}
+									<img src={member.profilePic} alt="{member.name} profile pic" />
+								{:else}
+									<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
+										<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+									</div>
+								{/if}
 							</div>
 						</div>
 
@@ -114,6 +107,42 @@
 				</a>
 			{/each}
 		</div>
+
+		<!-- Past Members Section -->
+		{#if pastAuthorsWithImages.length > 0}
+			<div class="mt-8 pt-6 border-t border-gray-300">
+				<p class="text-3xl font-bold mb-4">Past Members</p>
+
+				<div class="flex flex-wrap justify-center gap-2">
+					{#each pastAuthorsWithImages as member}
+						<a href={member.linkedin} target="_blank" class="hover:bg-blue">
+							<div
+								class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg opacity-75"
+							>
+								<div class="mx-auto avatar mb-1">
+									<div class="w-24 rounded-full">
+										{#if member.profilePic}
+											<img src={member.profilePic} alt="{member.name} profile pic" />
+										{:else}
+											<div
+												class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center"
+											>
+												<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+											</div>
+										{/if}
+									</div>
+								</div>
+
+								<div>
+									<p class="text-sm font-bold">{member.name}</p>
+									<p class="text-sm">{member.title}</p>
+								</div>
+							</div>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Our mission -->

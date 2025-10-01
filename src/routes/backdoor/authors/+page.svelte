@@ -32,6 +32,7 @@
 	};
 	let newAuthorLinkedIn = '';
 	let newAuthorArticles: string[] = [];
+	let newAuthorCurrent = true; // Default to true for new authors
 	let authorStatus = 'Changes pending';
 
 	// Load existing authors
@@ -75,6 +76,7 @@
 		newAuthorTitle = author.title || '';
 		newAuthorLinkedIn = author.linkedin || '';
 		newAuthorArticles = author.articles || [];
+		newAuthorCurrent = author.currentAuthor !== undefined ? author.currentAuthor : true;
 
 		// Set profile image if exists - use display URL for preview, keep original path for saving
 		if (author.pfp) {
@@ -103,6 +105,7 @@
 		newAuthorTitle = '';
 		newAuthorLinkedIn = '';
 		newAuthorArticles = [];
+		newAuthorCurrent = true; // Reset to default true for new authors
 		newAuthorPFP = { type: '', src: '' };
 
 		authorStatus = 'Changes pending';
@@ -159,6 +162,7 @@
 				linkedin: newAuthorLinkedIn.trim(),
 				pfp: pfpUrl,
 				articles: newAuthorArticles,
+				currentAuthor: newAuthorCurrent,
 				updatedAt: new Date()
 			};
 
@@ -327,6 +331,17 @@
 					/>
 				</label>
 
+				<!-- Current Author Toggle -->
+				<div class="form-control">
+					<label class="label cursor-pointer justify-start gap-3">
+						<input type="checkbox" bind:checked={newAuthorCurrent} class="toggle toggle-primary" />
+						<span class="label-text">Current Author</span>
+						<span class="text-sm text-gray-500">
+							{newAuthorCurrent ? '(Active member)' : '(Past member)'}
+						</span>
+					</label>
+				</div>
+
 				<!-- Profile Photo Upload -->
 				<div>
 					<label class="form-control w-full">
@@ -447,8 +462,15 @@
 										<span class="text-gray-600 font-bold">{author.name.charAt(0)}</span>
 									</div>
 								{/if}
-								<div>
-									<div class="font-semibold">{author.name}</div>
+								<div class="flex-1">
+									<div class="flex items-center gap-2">
+										<div class="font-semibold">{author.name}</div>
+										{#if author.currentAuthor === false}
+											<span class="badge badge-outline badge-sm text-gray-500">Past</span>
+										{:else}
+											<span class="badge badge-primary badge-sm">Current</span>
+										{/if}
+									</div>
 									<div class="text-sm text-gray-600">{author.title}</div>
 								</div>
 							</div>

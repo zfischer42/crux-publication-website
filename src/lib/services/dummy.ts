@@ -1,4 +1,4 @@
-import type { Article, ArticlePreview, Author } from './article.types';
+import type { Article, ArticlePreview, Author } from './article.types.ts';
 const LoadingGif = '/Loading.gif';
 
 export const dummyAuthor : Author = {
