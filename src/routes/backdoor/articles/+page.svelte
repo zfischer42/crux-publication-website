@@ -7,9 +7,9 @@
 	import { doc, setDoc } from 'firebase/firestore';
 	import { ref, uploadBytes } from 'firebase/storage';
 	import { goto } from '$app/navigation';
-	import type { Article } from '$lib/services/article.types';
+	import type { Article, Content } from '$lib/services/article.types';
 	import Editor from '@tinymce/tinymce-svelte';
-	import { Button, Modal } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
 
 	// DATA MANAGEMENT
 	export let data;
@@ -23,7 +23,17 @@
 	let newSlug = '';
 	let newTitle = 'This is a title';
 	let newAuthor = 'John Author';
-	let newDate = '05/19/2005';
+
+	// Initialize with current date in MM/DD/YYYY format
+	function getCurrentDateString(): string {
+		const now = new Date();
+		const month = (now.getMonth() + 1).toString().padStart(2, '0');
+		const day = now.getDate().toString().padStart(2, '0');
+		const year = now.getFullYear();
+		return `${month}/${day}/${year}`;
+	}
+
+	let newDate = getCurrentDateString();
 	let newCategories = [];
 	const categories = ['Business', 'Technology', 'Science'];
 	let otherCategory = ''; // Store the value for "Other" input
@@ -34,7 +44,7 @@
 	let articleObject: Article;
 	let errorMessages: string[] = [];
 
-	let fields: ArticleContent[] = []; // Array to manage all fields
+	let fields: Content[] = []; // Array to manage all fields
 
 	// TinyMCE config with event handler (for text fields )
 	let tinymceConfig = {
@@ -55,6 +65,13 @@
 	// Navigation
 	function goBack() {
 		goto('/backdoor');
+	}
+
+	// Auto-populate date if empty
+	function ensureDateIsSet() {
+		if (!newDate || newDate.trim() === '') {
+			newDate = getCurrentDateString();
+		}
 	}
 
 	// Add anything
@@ -134,13 +151,14 @@
 		}
 	}
 
-
-
 	/**
 	 * Function runs when "Publish Article" button is pressed
 	 */
 	async function handleSubmit() {
 		articleStatus = 'Loading';
+
+		// Auto-populate date if empty
+		ensureDateIsSet();
 
 		// Validate all fields
 		if (validateFields()) {
@@ -244,7 +262,13 @@
 				</label>
 				<label class="input input-bordered flex items-center gap-2">
 					Date:
-					<input bind:value={newDate} type="text" class="grow" placeholder="April 14, 1939" />
+					<input
+						bind:value={newDate}
+						type="text"
+						class="grow"
+						placeholder="April 14, 1939"
+						on:blur={ensureDateIsSet}
+					/>
 				</label>
 				<label class="input input-bordered flex items-center gap-2">
 					Description:
@@ -324,7 +348,7 @@
 								<div class="mb-3 me-1 grow">
 									<Editor
 										licenseKey="nr5tfa2k70yvg1zbuzu2rvguuhr5d4paqwbg3xp966forabr"
-										scriptSrc="tinymce/tinymce.min.js"
+										scriptSrc="https://cdn.tiny.cloud/1/nr5tfa2k70yvg1zbuzu2rvguuhr5d4paqwbg3xp966forabr/tinymce/7/tinymce.min.js"
 										bind:value={field.text}
 										conf={tinymceConfig}
 									/>
@@ -459,66 +483,82 @@
 </div>
 
 {#if articleSelectModal}
-	<div class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40"></div>
-{/if}
-
-<Modal
-	class="shadow-lg z-5 "
-	title="Select an Article:"
-	bind:open={articleSelectModal}
-	outsideclose
-	autoclose
-	bodyClass=""
-	on:close={() => console.log('Selected Article:', selectedArticle)}
->
-	<svelte:fragment slot="header">
-		<div class="flex flex-row w-full justify-between">
-			<p class="font-bold text-xl">Select Article:</p>
-			<button
-				class="btn btn-sm bg-gray-700 hover:bg-gray-600 border-none"
-				on:click={() => (articleSelectModal = false)}
-			>
-				Exit
-			</button>
-		</div>
-	</svelte:fragment>
-
-	<div class="flex flex-col mb-4">
+	<!-- Custom Modal -->
+	<div
+		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="modal-title"
+	>
 		<button
-			class="px-4 py-3 text-start {selectedArticle === '' ? 'bg-gray-600' : 'hover:bg-gray-700'}"
-			on:click={() => {
-				selectedArticle = '';
-			}}
+			class="absolute inset-0 w-full h-full"
+			aria-label="Close modal"
+			on:click={() => (articleSelectModal = false)}
+			on:keydown={(e) => e.key === 'Escape' && (articleSelectModal = false)}
+		></button>
+		<div
+			class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto relative z-10"
 		>
-			<i>New Article</i>
-		</button>
+			<!-- Header -->
+			<div class="flex flex-row w-full justify-between items-center p-6 border-b">
+				<h2 id="modal-title" class="font-bold text-xl">Select Article:</h2>
+				<button
+					class="btn btn-sm bg-gray-700 hover:bg-gray-600 border-none"
+					on:click={() => (articleSelectModal = false)}
+				>
+					Exit
+				</button>
+			</div>
 
-		{#each data.articles as article}
-			<button
-				class="px-4 py-3 text-start {selectedArticle === article.title
-					? 'bg-gray-600'
-					: 'hover:bg-gray-700'}"
-				on:click={() => {
-					selectedArticle = article.title;
-					newSlug = article.slug;
-					newTitle = article.title;
-					newAuthor = article.author;
-					newDate = article.date;
-					newCategories = article.categories;
-					newDescription = article.description;
-					newImage = article.image;
-					fields = article.content;
-					console.log(fields);
-					console.log(article.content);
-				}}
-			>
-				{article.title}
-			</button>
-		{/each}
+			<!-- Content -->
+			<div class="p-6">
+				<div class="flex flex-col mb-4">
+					<button
+						class="px-4 py-3 text-start {selectedArticle === ''
+							? 'bg-gray-600'
+							: 'hover:bg-gray-700'}"
+						on:click={() => {
+							selectedArticle = '';
+						}}
+					>
+						<i>New Article</i>
+					</button>
+
+					{#each data.articles as article}
+						<button
+							class="px-4 py-3 text-start {selectedArticle === article.title
+								? 'bg-gray-600'
+								: 'hover:bg-gray-700'}"
+							on:click={() => {
+								selectedArticle = article.title;
+								newSlug = article.slug;
+								newTitle = article.title;
+								newAuthor = article.author;
+								// Convert Date object to MM/DD/YYYY string format for the form
+								if (article.date instanceof Date) {
+									const month = (article.date.getMonth() + 1).toString().padStart(2, '0');
+									const day = article.date.getDate().toString().padStart(2, '0');
+									const year = article.date.getFullYear();
+									newDate = `${month}/${day}/${year}`;
+								} else {
+									newDate = article.date;
+								}
+								newCategories = article.categories;
+								newDescription = article.description;
+								newImage = article.image;
+								fields = article.content;
+								console.log(fields);
+								console.log(article.content);
+							}}
+						>
+							{article.title}
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
 	</div>
-</Modal>
-
-
+{/if}
 
 <style>
 	.btn {

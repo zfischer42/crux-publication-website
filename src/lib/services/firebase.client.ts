@@ -12,6 +12,7 @@ import type { FirebaseStorage } from 'firebase/storage';
 import type { Firestore       } from 'firebase/firestore';
 import type { Auth            } from 'firebase/auth';
 import type { ArticlePreview, Content         } from './article.types';
+import { getAuthorIdByName } from './firebase.services';
 
 const FIREBASE_CONFIG = {
     apiKey            : import.meta.env.VITE_FIREBASE_API_KEY,
@@ -47,29 +48,71 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
 
     const slug = (articlePreview.slug === '' ? slugifyTitle(articlePreview.title) : articlePreview.slug);
 
-    // Add title image to Storage
-    const fileRef = ref(storage, `files/${articlePreview.image.fileName}`);
-
     try {
-        const snapshot = await uploadBytes(fileRef, articlePreview.image.file as File);
-        console.log('File uploaded successfully', snapshot);
+        // Sanitize main image filename
+        const sanitizedMainImageName = sanitizeFileName(articlePreview.image.fileName);
+        
+        // Upload main article image to Storage
+        const mainImageRef = ref(storage, `files/${sanitizedMainImageName}`);
+        const mainImageSnapshot = await uploadBytes(mainImageRef, articlePreview.image.file as File);
+        console.log('Main image uploaded successfully', mainImageSnapshot);
 
-        // Remove the file property so it can be stored in the database
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const sanitizedContent = content.map(({ file, ...rest }) => ({
-            ...rest,
+        // Upload all content images to Storage
+        const sanitizedContent = await Promise.all(content.map(async (item) => {
+            if (item.type === 'image' && item.file) {
+                // Sanitize content image filename
+                const sanitizedContentImageName = sanitizeFileName(item.fileName);
+                
+                // Upload content image to Storage
+                const contentImageRef = ref(storage, `files/${sanitizedContentImageName}`);
+                const contentImageSnapshot = await uploadBytes(contentImageRef, item.file as File);
+                console.log('Content image uploaded successfully:', sanitizedContentImageName, contentImageSnapshot);
+                
+                // Remove the file property and update fileName with sanitized version
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { file, ...rest } = item;
+                return { ...rest, fileName: sanitizedContentImageName };
+            }
+            return item;
         }));
         
+        // Remove the file property from main image and update fileName with sanitized version
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { file, ...sanitizedImage } = articlePreview.image;
+        sanitizedImage.fileName = sanitizedMainImageName;
+
+        // Convert date string to Date object if it's a string
+        let dateToStore = articlePreview.date;
+        if (typeof dateToStore === 'string') {
+            // Handle MM/DD/YYYY format
+            const dateParts = dateToStore.split('/');
+            if (dateParts.length === 3) {
+                const month = parseInt(dateParts[0]) - 1; // JavaScript months are 0-indexed
+                const day = parseInt(dateParts[1]);
+                const year = parseInt(dateParts[2]);
+                dateToStore = new Date(year, month, day);
+            } else {
+                // Fallback to parsing the string directly
+                dateToStore = new Date(dateToStore);
+            }
+        }
+
+        // Handle authors array - if not provided, try to get author ID from author name
+        let authorsArray = articlePreview.authors || [];
+        if (authorsArray.length === 0 && articlePreview.author) {
+            const authorId = await getAuthorIdByName(articlePreview.author);
+            if (authorId) {
+                authorsArray = [authorId];
+            }
+        }
 
         // Add doc to Firestore
         const sanitizedPreview = {
             slug: slug,
             title: articlePreview.title,
             author: articlePreview.author,
-            authors: articlePreview.authors || [],
-            date: articlePreview.date,
+            authors: authorsArray,
+            date: dateToStore,
             categories: articlePreview.categories,
             description: articlePreview.description,
             image: sanitizedImage,
@@ -87,6 +130,7 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
         console.log("Content successfully added");
     } catch (error) {
         console.error('Error occurred while adding the article:', error);
+        throw error; // Re-throw to let the calling function handle it
     }
 }
 
@@ -97,4 +141,11 @@ function slugifyTitle(title : string) : string {
         .replace(/[^\w\s-]/g, '')    // Remove all non-word characters (punctuation, etc.)
         .replace(/\s+/g, '-')        // Replace spaces with hyphens
         .replace(/-+/g, '-');        // Ensure no repeated hyphens
+}
+
+function sanitizeFileName(fileName: string): string {
+    return fileName
+        .replace(/[^a-zA-Z0-9.-]/g, '_')  // Replace special characters with underscores
+        .replace(/_+/g, '_')              // Replace multiple underscores with single
+        .replace(/^_|_$/g, '');           // Remove leading/trailing underscores
 }

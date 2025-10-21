@@ -7,9 +7,42 @@ import { getDownloadURL, ref } from "firebase/storage";
 let authorNameToIdCache: Map<string, string> | null = null;
 
 /**
+ * Safely convert Firebase Timestamp or Date to JavaScript Date
+ */
+function safeToDate(dateValue: any): Date {
+    if (!dateValue) {
+        return new Date(); // Return current date as fallback
+    }
+    
+    // If it's already a Date object, return it
+    if (dateValue instanceof Date) {
+        return dateValue;
+    }
+    
+    // If it has a toDate method (Firebase Timestamp), use it
+    if (typeof dateValue.toDate === 'function') {
+        return dateValue.toDate();
+    }
+    
+    // If it's a string, try to parse it
+    if (typeof dateValue === 'string') {
+        const parsed = new Date(dateValue);
+        return isNaN(parsed.getTime()) ? new Date() : parsed;
+    }
+    
+    // If it's a number (timestamp), convert it
+    if (typeof dateValue === 'number') {
+        return new Date(dateValue);
+    }
+    
+    // Fallback to current date
+    return new Date();
+}
+
+/**
  * Get author ID by name, with caching for performance
  */
-async function getAuthorIdByName(authorName: string): Promise<string | null> {
+export async function getAuthorIdByName(authorName: string): Promise<string | null> {
     if (!authorNameToIdCache) {
         // Load all authors into cache
         const authorsRef = collection(db, 'authors');
@@ -26,62 +59,160 @@ async function getAuthorIdByName(authorName: string): Promise<string | null> {
 }
 
 export async function getArticles(category : Category) {    
-    let articles: ArticlePreview[] = [];
+    try {
+        let articles: ArticlePreview[] = [];
 
-    let q;
-    if (category == 'All') {
-        q = query(collection(db, 'article-preview'));
-    } else {
-        q = query(
-            collection(db, 'article-preview'),
-            where('categories', 'array-contains', category),
-        );
-    }
-        
-    const querySnapshot = await getDocs(q);
-    articles = await Promise.all (querySnapshot.docs.map(async (doc) => {
-        const docData = doc.data()
-
-        const image: Content = await getImage(docData.image as Content);
-
-        // Handle legacy author field - if authors array is empty but author field exists,
-        // we'll try to find the author ID by name
-        let authors = docData.authors || [];
-        if (authors.length === 0 && docData.author) {
-            const authorId = await getAuthorIdByName(docData.author);
-            if (authorId) {
-                authors = [authorId];
-            }
+        let q;
+        if (category == 'All') {
+            q = query(collection(db, 'article-preview'));
+        } else {
+            q = query(
+                collection(db, 'article-preview'),
+                where('categories', 'array-contains', category),
+            );
         }
+            
+        const querySnapshot = await getDocs(q);
+        articles = await Promise.all (querySnapshot.docs.map(async (doc) => {
+            try {
+                const docData = doc.data()
 
-        const article = {
-            slug        : docData.slug,
-            title       : docData.title,
-            author      : docData.author,
-            authors     : authors,
-            date        : docData.date.toDate(),
-            categories  : docData.categories,
-            description : docData.description,
-            image       : image,
-        };
+                const image: Content = await getImage(docData.image as Content);
+
+                // Handle legacy author field - if authors array is empty but author field exists,
+                // we'll try to find the author ID by name
+                let authors = docData.authors || [];
+                if (authors.length === 0 && docData.author) {
+                    const authorId = await getAuthorIdByName(docData.author);
+                    if (authorId) {
+                        authors = [authorId];
+                    }
+                }
+
+                const article = {
+                    slug        : docData.slug || '',
+                    title       : docData.title || '',
+                    author      : docData.author || '',
+                    authors     : authors,
+                    date        : safeToDate(docData.date),
+                    categories  : docData.categories || [],
+                    description : docData.description || '',
+                    image       : image,
+                };
+                
+                return article;
+            } catch (error) {
+                console.error('Error processing article:', doc.id, error);
+                // Return a fallback article to prevent the entire function from failing
+                return {
+                    slug: doc.id || 'unknown',
+                    title: 'Error loading article',
+                    author: 'Unknown',
+                    authors: [],
+                    date: new Date(),
+                    categories: [],
+                    description: 'There was an error loading this article.',
+                    image: { type: 'image', src: '', fileName: '' }
+                };
+            }
+        }));
         
-        return article;
-    }));
-    
 
-    // Sort articles by date in descending order after fetching
-    articles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    return articles;
+        // Sort articles by date in descending order after fetching
+        articles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        return articles;
+    } catch (error) {
+        console.error('Error fetching articles:', error);
+        return []; // Return empty array on error
+    }
 }
 
+// Get all articles with content for backdoor editing
+export async function getAllArticlesWithContent() {
+    try {
+        const contentCollection = collection(db, 'article-content');
+        const querySnapshot = await getDocs(contentCollection);
+        
+        const articles = await Promise.all(querySnapshot.docs.map(async (doc) => {
+            try {
+                const docData = doc.data();
+                
+                // Load main image
+                const mainImage: Content = await getImage(docData.preview?.image as Content);
+                
+                // Handle legacy author field
+                let authors = docData.preview?.authors || [];
+                if (authors.length === 0 && docData.preview?.author) {
+                    const authorId = await getAuthorIdByName(docData.preview.author);
+                    if (authorId) {
+                        authors = [authorId];
+                    }
+                }
+                
+                const preview = {
+                    slug: docData.preview?.slug || doc.id || '',
+                    title: docData.preview?.title || 'Untitled',
+                    author: docData.preview?.author || 'Unknown',
+                    authors: authors,
+                    date: safeToDate(docData.preview?.date),
+                    categories: docData.preview?.categories || [],
+                    description: docData.preview?.description || '',
+                    image: mainImage,
+                };
+                
+                // Load all content images
+                const content = await Promise.all((docData.content || []).map(async (segment: Content) => {
+                    if (segment.type === 'image') {
+                        return await getImage(segment);
+                    }
+                    return segment;
+                }));
+                
+                return {
+                    ...preview,
+                    content: content
+                };
+            } catch (error) {
+                console.error('Error processing article with content:', doc.id, error);
+                // Return a fallback article
+                return {
+                    slug: doc.id || 'unknown',
+                    title: 'Error loading article',
+                    author: 'Unknown',
+                    authors: [],
+                    date: new Date(),
+                    categories: [],
+                    description: 'There was an error loading this article.',
+                    image: { type: 'image', src: '', fileName: '' },
+                    content: []
+                };
+            }
+        }));
+        
+        // Sort by date descending
+        articles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        return articles;
+    } catch (error) {
+        console.error('Error fetching articles with content:', error);
+        return []; // Return empty array on error
+    }
+}
 
 export async function getImage(image : Content) : Promise<Content> {
+    if (!image.fileName) {
+        console.warn('Image has no fileName:', image);
+        return image;
+    }
+    
     const imageRef = ref(storage, `files/${image.fileName}`); // Path to your image in Firebase Storage
     try {
         image.src = await getDownloadURL(imageRef); // Generate the image download URL
     } catch (error) {
-        console.error('Error fetching image:', error);
+        console.error('Error fetching image:', image.fileName, error);
+        // Set a placeholder or empty src instead of leaving it undefined
+        image.src = '';
     }
 
     return image
@@ -115,7 +246,7 @@ export async function loadArticle(slug : string){
             title       : docData.preview.title,
             author      : docData.preview.author,
             authors     : authors,
-            date        : docData.preview.date.toDate(), // Firebase returns Dates as timestamp
+            date        : safeToDate(docData.preview.date), // Safely convert Firebase Timestamp or Date
             categories  : docData.preview.categories,
             description : docData.preview.description,
             image       : mainImage,
@@ -180,7 +311,7 @@ export async function searchArticles(search: string, category: Category, sortBy:
 				title: docData.title,
 				author: docData.author,
 				authors: authors,
-				date: docData.date.toDate(),
+				date: safeToDate(docData.date),
 				categories: docData.categories,
 				description: docData.description,
 				image: image

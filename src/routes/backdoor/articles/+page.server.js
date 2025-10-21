@@ -1,8 +1,8 @@
-import { getArticles } from '$lib/services/firebase.services';
+import { getAllArticlesWithContent } from '$lib/services/firebase.services';
 
 export async function load() {
-    // Query Firestore for articles
-    const articles = await getArticles('All');
+    // Query Firestore for articles with content
+    const articles = await getAllArticlesWithContent();
 
     // Pass articles to the frontend
     return {
