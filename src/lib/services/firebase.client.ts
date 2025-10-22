@@ -49,37 +49,35 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
     const slug = (articlePreview.slug === '' ? slugifyTitle(articlePreview.title) : articlePreview.slug);
 
     try {
-        // Sanitize main image filename
-        const sanitizedMainImageName = sanitizeFileName(articlePreview.image.fileName);
-        
-        // Upload main article image to Storage
-        const mainImageRef = ref(storage, `files/${sanitizedMainImageName}`);
-        const mainImageSnapshot = await uploadBytes(mainImageRef, articlePreview.image.file as File);
-        console.log('Main image uploaded successfully', mainImageSnapshot);
+        // Upload main article image to Storage only if it's a new file
+        if (articlePreview.image.file) {
+            const mainImageRef = ref(storage, `files/${articlePreview.image.fileName}`);
+            const mainImageSnapshot = await uploadBytes(mainImageRef, articlePreview.image.file as File);
+            console.log('Main image uploaded successfully', mainImageSnapshot);
+        }
 
-        // Upload all content images to Storage
-        const sanitizedContent = await Promise.all(content.map(async (item) => {
+        // Upload all content images to Storage only if they're new files
+        const processedContent = await Promise.all(content.map(async (item) => {
             if (item.type === 'image' && item.file) {
-                // Sanitize content image filename
-                const sanitizedContentImageName = sanitizeFileName(item.fileName);
-                
                 // Upload content image to Storage
-                const contentImageRef = ref(storage, `files/${sanitizedContentImageName}`);
+                const contentImageRef = ref(storage, `files/${item.fileName}`);
                 const contentImageSnapshot = await uploadBytes(contentImageRef, item.file as File);
-                console.log('Content image uploaded successfully:', sanitizedContentImageName, contentImageSnapshot);
+                console.log('Content image uploaded successfully:', item.fileName, contentImageSnapshot);
                 
-                // Remove the file property and update fileName with sanitized version
+                // Remove the file property and inputRef but keep original fileName
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { file, ...rest } = item;
-                return { ...rest, fileName: sanitizedContentImageName };
+                const { file, inputRef, ...rest } = item;
+                return rest;
             }
-            return item;
+            // Remove inputRef from all items before saving to database
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { inputRef, ...rest } = item;
+            return rest;
         }));
         
-        // Remove the file property from main image and update fileName with sanitized version
+        // Remove the file property and inputRef from main image but keep original fileName
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { file, ...sanitizedImage } = articlePreview.image;
-        sanitizedImage.fileName = sanitizedMainImageName;
+        const { file, inputRef, ...processedImage } = articlePreview.image;
 
         // Convert date string to Date object if it's a string
         let dateToStore = articlePreview.date;
@@ -107,7 +105,7 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
         }
 
         // Add doc to Firestore
-        const sanitizedPreview = {
+        const processedPreview = {
             slug: slug,
             title: articlePreview.title,
             author: articlePreview.author,
@@ -115,18 +113,18 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
             date: dateToStore,
             categories: articlePreview.categories,
             description: articlePreview.description,
-            image: sanitizedImage,
+            image: processedImage,
         };
 
-        const sanitizedArticle = {
-            preview : sanitizedPreview,
-            content : sanitizedContent,
+        const processedArticle = {
+            preview : processedPreview,
+            content : processedContent,
         }
 
-        await setDoc(doc(db, "article-preview", slug), sanitizedPreview);
+        await setDoc(doc(db, "article-preview", slug), processedPreview);
         console.log("Preview successfully added");
 
-        await setDoc(doc(db, "article-content", slug), sanitizedArticle);
+        await setDoc(doc(db, "article-content", slug), processedArticle);
         console.log("Content successfully added");
     } catch (error) {
         console.error('Error occurred while adding the article:', error);
@@ -141,11 +139,4 @@ function slugifyTitle(title : string) : string {
         .replace(/[^\w\s-]/g, '')    // Remove all non-word characters (punctuation, etc.)
         .replace(/\s+/g, '-')        // Replace spaces with hyphens
         .replace(/-+/g, '-');        // Ensure no repeated hyphens
-}
-
-function sanitizeFileName(fileName: string): string {
-    return fileName
-        .replace(/[^a-zA-Z0-9.-]/g, '_')  // Replace special characters with underscores
-        .replace(/_+/g, '_')              // Replace multiple underscores with single
-        .replace(/^_|_$/g, '');           // Remove leading/trailing underscores
 }

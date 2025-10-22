@@ -45,6 +45,7 @@
 	let errorMessages: string[] = [];
 
 	let fields: Content[] = []; // Array to manage all fields
+	let coverPhotoInput: HTMLInputElement; // Reference to hidden cover photo input
 
 	// TinyMCE config with event handler (for text fields )
 	let tinymceConfig = {
@@ -116,6 +117,11 @@
 		fields[index] = { type: 'video', src: event.target.value };
 	}
 
+	// Data changes within an Image credits field
+	function handleImageCreditsChange(event: any, index: number) {
+		fields[index] = { ...fields[index], credits: event.target.value };
+	}
+
 	// Remove a field from the contenxt
 	function handleRemoveField(index: number) {
 		fields.splice(index, 1); // Remove the item at the specified index
@@ -137,7 +143,8 @@
 					file: file,
 					fileName: file.name,
 					type: 'image',
-					src: URL.createObjectURL(file)
+					src: URL.createObjectURL(file),
+					credits: fields[index]?.credits || '' // Preserve existing credits
 				};
 			} else {
 				// Image upload to Main Photo
@@ -145,7 +152,8 @@
 					file: file,
 					type: 'image',
 					fileName: file.name,
-					src: URL.createObjectURL(file)
+					src: URL.createObjectURL(file),
+					credits: newImage?.credits || '' // Preserve existing credits
 				};
 			}
 		}
@@ -237,10 +245,10 @@
 				<p class="text-gray-600 mt-2">Create and edit articles</p>
 			</div>
 			<div class="flex gap-2">
-				<Button class="bg-zinc-200" on:click={() => (articleSelectModal = true)}
-					><span class="text-zinc-700">Select Article</span></Button
-				>
-				<button on:click={goBack} class="btn btn-secondary"> ← Back to Dashboard </button>
+				<button on:click={() => (articleSelectModal = true)} class="btn btn-primary">
+					Select Article
+				</button>
+				<button on:click={goBack} class="btn btn-primary"> ← Back to Dashboard </button>
 			</div>
 		</div>
 
@@ -322,12 +330,39 @@
 						<div class="label p-0 pb-1 mt-1">
 							<span>Cover photo:</span>
 						</div>
-						<input
-							type="file"
-							class="file-input file-input-bordered file-input-accent w-full"
-							on:change={(event) => handleImageUpload(event, -1)}
-						/>
+						<div class="relative">
+							<input
+								type="file"
+								class="hidden"
+								on:change={(event) => handleImageUpload(event, -1)}
+								bind:this={coverPhotoInput}
+							/>
+							<button
+								type="button"
+								class="file-input file-input-bordered file-input-accent w-full flex items-center p-0"
+								on:click={() => coverPhotoInput?.click()}
+							>
+								<span
+									class="bg-accent text-accent-content px-3 py-2 text-sm font-medium h-full flex items-center"
+									>IMAGE</span
+								>
+								<span class="px-3 text-sm text-gray-700"
+									>{newImage.fileName || 'No file chosen'}</span
+								>
+							</button>
+						</div>
 					</label>
+
+					<!-- Cover Photo Credits Input -->
+					<div class="mt-2">
+						<input
+							type="text"
+							placeholder="Cover photo credits (optional)"
+							value={newImage.credits || ''}
+							on:input={(event) => (newImage = { ...newImage, credits: event.target.value })}
+							class="input input-bordered w-full"
+						/>
+					</div>
 
 					{#if newImage.src}
 						<img
@@ -383,19 +418,45 @@
 							<!-- Image content -->
 							<div class="mb-3">
 								<div class="flex flex-row">
-									<input
-										type="file"
-										accept="image/*"
-										on:change={(event) => handleImageUpload(event, index)}
-										FileList={field.src ? [{ name: field.src }] : []}
-										class="file-input file-input-bordered file-input-accent w-full me-1"
-									/>
+									<div class="flex-1 me-1">
+										<input
+											type="file"
+											accept="image/*"
+											class="hidden"
+											on:change={(event) => handleImageUpload(event, index)}
+											bind:this={field.inputRef}
+										/>
+										<button
+											type="button"
+											class="file-input file-input-bordered file-input-accent w-full flex items-center p-0"
+											on:click={() => field.inputRef?.click()}
+										>
+											<span
+												class="bg-accent text-accent-content px-3 py-2 text-sm font-medium h-full flex items-center"
+												>IMAGE</span
+											>
+											<span class="px-3 text-sm text-gray-700"
+												>{field.fileName || 'No file chosen'}</span
+											>
+										</button>
+									</div>
 									<button
 										class="btn btn-sm bg-zinc-200 hover:bg-zinc-300 border-none font-mono flex items-center justify-center rounded-full h-8 w-8 p-0"
 										on:click={() => handleRemoveField(index)}
 									>
 										<span class="text-zinc-500">x</span>
 									</button>
+								</div>
+
+								<!-- Image Credits Input -->
+								<div class="mt-2">
+									<input
+										type="text"
+										placeholder="Image credits (optional)"
+										value={field.credits || ''}
+										on:input={(event) => handleImageCreditsChange(event, index)}
+										class="input input-bordered w-full"
+									/>
 								</div>
 
 								{#if field.src}
@@ -515,10 +576,11 @@
 				<div class="flex flex-col mb-4">
 					<button
 						class="px-4 py-3 text-start {selectedArticle === ''
-							? 'bg-gray-600'
-							: 'hover:bg-gray-700'}"
+							? 'bg-blue-100 text-blue-800'
+							: 'hover:bg-gray-100'}"
 						on:click={() => {
 							selectedArticle = '';
+							articleSelectModal = false;
 						}}
 					>
 						<i>New Article</i>
@@ -527,8 +589,8 @@
 					{#each data.articles as article}
 						<button
 							class="px-4 py-3 text-start {selectedArticle === article.title
-								? 'bg-gray-600'
-								: 'hover:bg-gray-700'}"
+								? 'bg-blue-100 text-blue-800'
+								: 'hover:bg-gray-100'}"
 							on:click={() => {
 								selectedArticle = article.title;
 								newSlug = article.slug;
@@ -549,6 +611,7 @@
 								fields = article.content;
 								console.log(fields);
 								console.log(article.content);
+								articleSelectModal = false;
 							}}
 						>
 							{article.title}

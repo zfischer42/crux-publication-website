@@ -46,10 +46,11 @@
 		<!-- TITLE IMAGE -->
 		<div class="mt-8 w-full">
 			<img class="w-full object-contain" src={preview.image.src} alt={preview.description} />
-			<!-- IMAGE CREDITS -->
-			<!-- <p class="text-zinc-500 mt-2 font-serif text-sm font-light text-center">
-				Illustration by Abigail Lin
-			</p> -->
+			{#if preview.image.credits && preview.image.credits.trim() !== ''}
+				<p class="text-zinc-500 mt-2 font-serif text-sm font-light text-center italic">
+					{preview.image.credits}
+				</p>
+			{/if}
 		</div>
 
 		<!-- DIVIDER -->
@@ -62,7 +63,14 @@
 			{#each data.article.content as content, index}
 				{#if content.type === 'image'}
 					<!-- IMAGE -->
-					<img class="w-full object-cover mx-0 mb-7" src={content?.src} alt={'Image'} />
+					<div class="mb-7">
+						<img class="w-full object-cover mx-0" src={content?.src} alt={'Image'} />
+						{#if content.credits && content.credits.trim() !== ''}
+							<p class="text-zinc-500 mt-2 font-serif text-sm font-light text-center italic">
+								{content.credits}
+							</p>
+						{/if}
+					</div>
 				{:else if content.type === 'header'}
 					<!-- HEADER -->
 					<p class="mb-4 text-xl leading-7 font-[550] md:text-2xl">

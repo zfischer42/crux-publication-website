@@ -28,8 +28,10 @@ export interface Content {
     type         : 'image' | 'paragraph' | 'header' | 'video' | 'custom_html',
     src         ?: string,  // Image
     file        ?: File,    // Image
-    fileName    ?: string   // Image
-    text        ?: string   // Paragraph, Custom HTML
+    fileName    ?: string,  // Image
+    credits     ?: string,  // Image
+    text        ?: string,  // Paragraph, Custom HTML
+    inputRef    ?: HTMLInputElement // For file input references in editor
 }
 
 export interface Comment {
