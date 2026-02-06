@@ -12,21 +12,26 @@
 	export let includeSearch = true;
 	export let initialQuery = '';
 	export let searchFromUrl = '';
+	export let articlesPerPage = 5;
 
 	let searchQuery = initialQuery;
 	let selectedSort = 'none';
 	let debounceTimeout: ReturnType<typeof setTimeout>;
 	let userHasModifiedSearch = false;
+	let currentPage = 1;
 
 	// Reactive statement to handle searchFromUrl changes
 	$: if (searchFromUrl && searchFromUrl !== searchQuery) {
 		// Reset the flag when a new searchFromUrl is provided (new AuthorTag click)
 		userHasModifiedSearch = false;
 		searchQuery = searchFromUrl;
+		currentPage = 1;
 		runSearch(searchQuery);
-		setTimeout(() => {
-			document.getElementById('search-input')?.scrollIntoView({ behavior: 'smooth' });
-		}, 0);
+		if (typeof document !== 'undefined') {
+			setTimeout(() => {
+				document.getElementById('search-input')?.scrollIntoView({ behavior: 'smooth' });
+			}, 0);
+		}
 		// Clear searchFromUrl after processing to prevent interference with user input
 		searchFromUrl = '';
 	}
@@ -58,6 +63,7 @@
 		
 		// Mark that user has modified the search
 		userHasModifiedSearch = true;
+		currentPage = 1;
 
 		// Clear the previous timeout
 		clearTimeout(debounceTimeout);
@@ -71,6 +77,7 @@
 	function handleSortChange(event: Event) {
 		const target = event.target as HTMLSelectElement;
 		selectedSort = target.value;
+		currentPage = 1;
 		runSearch(searchQuery);
 	}
 </script>
@@ -136,9 +143,9 @@
 				class="grow w-full duration-200 ease-in bg-white md:bg-white/75 rounded-b-lg shadow hover:shadow-lg overflow-hidden"
 				class:rounded-t-lg={header === ''}
 			>
-				{#each articles.slice(0, 20) as article, index}
+				{#each articles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage) as article, index}
 					<ArticlePreviewCard preview={article}></ArticlePreviewCard>
-					{#if index < 19}
+					{#if index < articlesPerPage - 1 && index < articles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage).length - 1}
 						<div class="mx-6 border-zinc-300 border-[0.5px]"></div>
 					{/if}
 				{/each}
@@ -146,13 +153,23 @@
 
 			<!-- Switch pages -->
 			<div class="flex-none join my-3 mb-5 text-zinc-700 mx-auto shadow ease-in duration-200">
-				<button class="join-item btn bg-white/75 hover:bg-zinc-200/75"
-					><i class="fas fa-chevron-left"></i></button
+				<button 
+					class="join-item btn bg-white/75 hover:bg-zinc-200/75 disabled:opacity-50 disabled:cursor-not-allowed"
+					on:click={() => currentPage = Math.max(1, currentPage - 1)}
+					disabled={currentPage === 1}
 				>
-				<button class="join-item btn bg-white/75 hover:bg-zinc-200/75">Page 1 of 1</button>
-				<button class="join-item btn bg-white/75 hover:bg-zinc-200/75"
-					><i class="fas fa-chevron-right"></i></button
+					<i class="fas fa-chevron-left"></i>
+				</button>
+				<button class="join-item btn bg-white/75 hover:bg-zinc-200/75 cursor-default">
+					Page {currentPage} of {Math.ceil(articles.length / articlesPerPage)}
+				</button>
+				<button 
+					class="join-item btn bg-white/75 hover:bg-zinc-200/75 disabled:opacity-50 disabled:cursor-not-allowed"
+					on:click={() => currentPage = Math.min(Math.ceil(articles.length / articlesPerPage), currentPage + 1)}
+					disabled={currentPage === Math.ceil(articles.length / articlesPerPage)}
 				>
+					<i class="fas fa-chevron-right"></i>
+				</button>
 			</div>
 		{/if}
 	</div>
