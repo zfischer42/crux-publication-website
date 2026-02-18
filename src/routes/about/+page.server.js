@@ -19,19 +19,32 @@ export async function load() {
             };
         });
 
-        // Separate current and past authors
-        const currentAuthors = allAuthors.filter(author => author.currentAuthor !== false);
-        const pastAuthors = allAuthors.filter(author => author.currentAuthor === false);
+        // // Separate current and past authors
+        // const currentAuthors = allAuthors.filter(author => author.currentAuthor !== false);
+        // const pastAuthors = allAuthors.filter(author => author.currentAuthor === false);
+
+        // Separate current, past, and board members (department heads & managers) 
+        const currentBoard = allAuthors.filter(author => author.currentAuthor === "board")
+        const currentAuthors = allAuthors.filter(author => author.currentAuthor === "general member")
+        const pastAuthors = allAuthors.filter(author => author.currentAuthor === "past member")
+
+        // return {
+        //     currentAuthors,
+        //     pastAuthors
+        // };
 
         return {
             currentAuthors,
+            currentBoard,
             pastAuthors
         };
+
     } catch (error) {
         console.error('Error loading authors:', error);
         return {
             currentAuthors: [],
-            pastAuthors: []
+            pastAuthors: [],
+            currentBoard: []
         };
     }
 }

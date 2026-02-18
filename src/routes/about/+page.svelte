@@ -7,12 +7,32 @@
 	export let data;
 
 	let currentAuthorsWithImages = [];
+	let currentBoardWithImages = [];
 	let pastAuthorsWithImages = [];
 
 	onMount(async () => {
 		// Load profile images for current authors
 		currentAuthorsWithImages = await Promise.all(
 			data.currentAuthors.map(async (author) => {
+				let profilePic = '';
+				if (author.pfp) {
+					try {
+						const imageRef = ref(storage, author.pfp);
+						profilePic = await getDownloadURL(imageRef);
+					} catch (error) {
+						console.error('Error loading author image:', error);
+					}
+				}
+				return {
+					...author,
+					profilePic
+				};
+			})
+		);
+
+		// Load profiles images for current board members 
+		currentBoardWithImages = await Promise.all(
+			data.currentBoard.map(async (author) => {
 				let profilePic = '';
 				if (author.pfp) {
 					try {
@@ -79,35 +99,67 @@
 
 	<!-- Meet the Team -->
 	<div class="p-5 rounded-xl bg-white/85 border mb-8">
-		<p class="text-4xl font-bold mb-4">Meet the Team</p>
-
-		<div class="flex flex-wrap justify-center gap-2">
-			{#each currentAuthorsWithImages as member}
-				<a href={member.linkedin} target="_blank" class="hover:bg-blue">
-					<div
-						class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
-					>
-						<div class="mx-auto avatar mb-1">
-							<div class="w-24 rounded-full">
-								{#if member.profilePic}
-									<img src={member.profilePic} alt="{member.name} profile pic" />
-								{:else}
-									<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
-										<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+		<!-- Board Members Section -->
+			<p class="text-4xl font-bold mb-4">Meet the Team</p>
+			<div class="mt-8 pt-6 border-t border-gray-300">
+				<p class="text-3xl font-bold mb-4">Board</p>
+				<div class="flex flex-wrap justify-center gap-2">
+					{#each currentBoardWithImages as member}
+						<a href={member.linkedin} target="_blank" class="hover:bg-blue">
+							<div
+								class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
+							>
+								<div class="mx-auto avatar mb-1">
+									<div class="w-24 rounded-full">
+										{#if member.profilePic}
+											<img src={member.profilePic} alt="{member.name} profile pic" />
+										{:else}
+											<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
+												<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+											</div>
+										{/if}
 									</div>
-								{/if}
+								</div>
+
+								<div>
+									<p class="text-sm font-bold">{member.name}</p>
+									<p class="text-sm">{member.title}</p>
+								</div>
+							</div>
+						</a>
+					{/each}
+				</div>
+			</div>
+		<!-- General Members Section -->
+		<div class="mt-8 pt-6 border-t border-gray-300">
+			<p class="text-3xl font-bold mb-4">General Members</p>
+			<div class="flex flex-wrap justify-center gap-2">
+				{#each currentAuthorsWithImages as member}
+					<a href={member.linkedin} target="_blank" class="hover:bg-blue">
+						<div
+							class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
+						>
+							<div class="mx-auto avatar mb-1">
+								<div class="w-24 rounded-full">
+									{#if member.profilePic}
+										<img src={member.profilePic} alt="{member.name} profile pic" />
+									{:else}
+										<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
+											<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+
+							<div>
+								<p class="text-sm font-bold">{member.name}</p>
+								<p class="text-sm">{member.title}</p>
 							</div>
 						</div>
-
-						<div>
-							<p class="text-sm font-bold">{member.name}</p>
-							<p class="text-sm">{member.title}</p>
-						</div>
-					</div>
-				</a>
-			{/each}
+					</a>
+				{/each}
+			</div>
 		</div>
-
 		<!-- Past Members Section -->
 		{#if pastAuthorsWithImages.length > 0}
 			<div class="mt-8 pt-6 border-t border-gray-300">
