@@ -17,6 +17,13 @@
 	// DATA MANAGEMENT
 	export let data;
 
+	// AUTHOR STATUS LABELS
+	const authorLabels = [
+		{value: "board", label: "Board"},
+		{value: "general member", label: "General Member"},
+		{value: "past member", label: "Past Member"}
+	];
+
 	// NEW AUTHOR
 	let newAuthorName = '';
 	let newAuthorTitle = '';
@@ -32,7 +39,7 @@
 	};
 	let newAuthorLinkedIn = '';
 	let newAuthorArticles: string[] = [];
-	let newAuthorCurrent = true; // Default to true for new authors
+	let newAuthorCurrent = "general member"; // Default to true for new authors
 	let authorStatus = 'Changes pending';
 
 	// Load existing authors
@@ -68,6 +75,7 @@
 	 * Select an existing author to edit
 	 */
 	function selectAuthor(author: any) {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 		selectedAuthor = author;
 		isEditing = true;
 
@@ -76,7 +84,7 @@
 		newAuthorTitle = author.title || '';
 		newAuthorLinkedIn = author.linkedin || '';
 		newAuthorArticles = author.articles || [];
-		newAuthorCurrent = author.currentAuthor !== undefined ? author.currentAuthor : true;
+		newAuthorCurrent = author.currentAuthor !== undefined ? author.currentAuthor : "general member";
 
 		// Set profile image if exists - use display URL for preview, keep original path for saving
 		if (author.pfp) {
@@ -105,7 +113,7 @@
 		newAuthorTitle = '';
 		newAuthorLinkedIn = '';
 		newAuthorArticles = [];
-		newAuthorCurrent = true; // Reset to default true for new authors
+		newAuthorCurrent = "general member"; // Reset to default general member for new authors
 		newAuthorPFP = { type: '', src: '' };
 
 		authorStatus = 'Changes pending';
@@ -331,15 +339,14 @@
 					/>
 				</label>
 
-				<!-- Current Author Toggle -->
+				<!-- Current Author Radio Button (board, general member, past member) -->
 				<div class="form-control">
-					<label class="label cursor-pointer justify-start gap-3">
-						<input type="checkbox" bind:checked={newAuthorCurrent} class="toggle toggle-primary" />
-						<span class="label-text">Current Author</span>
-						<span class="text-sm text-gray-500">
-							{newAuthorCurrent ? '(Active member)' : '(Past member)'}
-						</span>
-					</label>
+					{#each authorLabels as author}
+						<label class="label cursor-pointer justify-start gap-3">
+							<input type="radio" bind:group={newAuthorCurrent} value={author.value} class="w-4 h-4 text-neutral-primary border-default-medium bg-neutral-secondary-medium rounded-full checked:border-brand border-default" />
+							<span class="label-text">{author.label}</span>
+						</label>
+					{/each}
 				</div>
 
 				<!-- Profile Photo Upload -->
@@ -465,8 +472,10 @@
 								<div class="flex-1">
 									<div class="flex items-center gap-2">
 										<div class="font-semibold">{author.name}</div>
-										{#if author.currentAuthor === false}
+										{#if author.currentAuthor === "past member"}
 											<span class="badge badge-outline badge-sm text-gray-500">Past</span>
+										{:else if author.currentAuthor === "board"}
+											<span class="badge badge-primary badge-sm text-yellow-500">Board</span>
 										{:else}
 											<span class="badge badge-primary badge-sm">Current</span>
 										{/if}
