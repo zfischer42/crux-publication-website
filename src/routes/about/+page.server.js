@@ -27,14 +27,17 @@ export async function load() {
         return {
             currentBoard,
             currentAuthors,
+            currentBoard,
             pastAuthors
         };
+
     } catch (error) {
         console.error('Error loading authors:', error);
         return {
             currentBoard: [],
             currentAuthors: [],
-            pastAuthors: []
+            pastAuthors: [],
+            currentBoard: []
         };
     }
 }
