@@ -1,18 +1,47 @@
-<script>
+<script lang="ts">
 	import BackgroundComponent from '$lib/components/BackgroundComponent.svelte';
 	import { storage } from '$lib/services/firebase.client';
 	import { ref, getDownloadURL } from 'firebase/storage';
 	import { onMount } from 'svelte';
 
-	export let data;
+	export let data; // Load all authors objects
+	
+	interface Member {
+		id: string;
+		name: string;
+		title?: string;
+		linkedin?: string;
+		pfp?: string;
+		currentAuthor: string;
+		profilePic: string;
+	}
 
-	let currentAuthorsWithImages = [];
-	let currentBoardWithImages = [];
-	let pastAuthorsWithImages = [];
+	let currentBoardWithImages: Member[] =[];
+	let currentMembersWithImages: Member[] = [];
+	let pastMembersWithImages: Member[] = [];
 
 	onMount(async () => {
-		// Load profile images for current authors
-		currentAuthorsWithImages = await Promise.all(
+		// Load profile images for current board
+		currentBoardWithImages = await Promise.all(
+			data.currentBoard.map(async (author) => {
+				let profilePic = '';
+				if (author.pfp) {
+					try {
+						const imageRef = ref(storage, author.pfp);
+						profilePic = await getDownloadURL(imageRef);
+					} catch (error) {
+						console.error('Error loading author image', error);
+					}
+				}
+				return {
+					...author,
+					profilePic
+				};
+			})
+		);
+
+		// Load profile images for current members
+		currentMembersWithImages = await Promise.all(
 			data.currentAuthors.map(async (author) => {
 				let profilePic = '';
 				if (author.pfp) {
@@ -30,27 +59,8 @@
 			})
 		);
 
-		// Load profiles images for current board members 
-		currentBoardWithImages = await Promise.all(
-			data.currentBoard.map(async (author) => {
-				let profilePic = '';
-				if (author.pfp) {
-					try {
-						const imageRef = ref(storage, author.pfp);
-						profilePic = await getDownloadURL(imageRef);
-					} catch (error) {
-						console.error('Error loading author image:', error);
-					}
-				}
-				return {
-					...author,
-					profilePic
-				};
-			})
-		);
-
-		// Load profile images for past authors
-		pastAuthorsWithImages = await Promise.all(
+		// Load profile images for past members
+		pastMembersWithImages = await Promise.all(
 			data.pastAuthors.map(async (author) => {
 				let profilePic = '';
 				if (author.pfp) {
@@ -99,13 +109,16 @@
 
 	<!-- Meet the Team -->
 	<div class="p-5 rounded-xl bg-white/85 border mb-8">
+		<p class="text-4xl font-bold mb-4">Meet the Team</p>
+
 		<!-- Board Members Section -->
-			<p class="text-4xl font-bold mb-4">Meet the Team</p>
-			<div class="mt-8 pt-6 border-t border-gray-300">
+		{#if currentBoardWithImages.length > 0}
+			<div class="mb-6">
 				<p class="text-3xl font-bold mb-4">Board</p>
+
 				<div class="flex flex-wrap justify-center gap-2">
 					{#each currentBoardWithImages as member}
-						<a href={member.linkedin} target="_blank" class="hover:bg-blue">
+						<a href={member.linkedin} target="_blank">
 							<div
 								class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
 							>
@@ -115,7 +128,9 @@
 											<img src={member.profilePic} alt="{member.name} profile pic" />
 										{:else}
 											<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
-												<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
+												<span class="text-gray-600 font-bold text-xl">
+													{member.name.charAt(0)}
+												</span>
 											</div>
 										{/if}
 									</div>
@@ -130,11 +145,12 @@
 					{/each}
 				</div>
 			</div>
-		<!-- General Members Section -->
-		<div class="mt-8 pt-6 border-t border-gray-300">
-			<p class="text-3xl font-bold mb-4">General Members</p>
+		{/if}
+		<!-- Current Members -->
+		<div class="mb-6">
+			<p class="text-3xl font-bold mb-4">Current Members</p>
 			<div class="flex flex-wrap justify-center gap-2">
-				{#each currentAuthorsWithImages as member}
+				{#each currentMembersWithImages as member}
 					<a href={member.linkedin} target="_blank" class="hover:bg-blue">
 						<div
 							class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg"
@@ -160,13 +176,14 @@
 				{/each}
 			</div>
 		</div>
+		
 		<!-- Past Members Section -->
-		{#if pastAuthorsWithImages.length > 0}
+		{#if pastMembersWithImages.length > 0}
 			<div class="mt-8 pt-6 border-t border-gray-300">
 				<p class="text-3xl font-bold mb-4">Past Members</p>
 
 				<div class="flex flex-wrap justify-center gap-2">
-					{#each pastAuthorsWithImages as member}
+					{#each pastMembersWithImages as member}
 						<a href={member.linkedin} target="_blank" class="hover:bg-blue">
 							<div
 								class="flex flex-col justify-center w-36 transition duration-200 ease-in hover:bg-zinc-200 hover:shadow p-2 rounded-lg opacity-75"

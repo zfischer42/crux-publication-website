@@ -24,7 +24,8 @@
 
 	// List journal filenames (without extension)
 	const journals = [
-		{ name: 'CruX Journal 24-25', title: 'Human Subjectivity and Experience' }
+		{ name: 'CruX Journal 24-25', title: 'Human Subjectivity and Experience' },
+		{ name: 'CruX Journal 25-26', title: 'Taking Control: Brain Bodymind And Society' }
 		// { name: 'CruX Journal 25-26', title: '...' }
 		// { name: 'CruX Journal 26-27', title: '...' }
 	];
@@ -67,7 +68,6 @@
 	</div>
 
 	<!-- <PdfViewer url="/CruX Journal 24-25.pdf" scale={1.0} /> -->
-	<!-- View Journals -->
 
 	<!-- View Journals -->
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 z-20 mb-2">
