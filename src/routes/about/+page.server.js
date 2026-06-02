@@ -27,7 +27,6 @@ export async function load() {
         return {
             currentBoard,
             currentAuthors,
-            currentBoard,
             pastAuthors
         };
 
@@ -37,7 +36,6 @@ export async function load() {
             currentBoard: [],
             currentAuthors: [],
             pastAuthors: [],
-            currentBoard: []
         };
     }
 }
