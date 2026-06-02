@@ -114,7 +114,7 @@
 		<!-- Board Members Section -->
 		{#if currentBoardWithImages.length > 0}
 			<div class="mb-6">
-				<p class="text-3xl font-bold mb-4">Board</p>
+				<p class="text-3xl font-bold mb-4">Board Members</p>
 
 				<div class="flex flex-wrap justify-center gap-2">
 					{#each currentBoardWithImages as member}
@@ -147,8 +147,8 @@
 			</div>
 		{/if}
 		<!-- Current Members -->
-		<div class="mb-6">
-			<p class="text-3xl font-bold mb-4">Current Members</p>
+		<div class="mb-6 mt-6 pt-6 border-t border-gray-300">
+			<p class="text-3xl font-bold mb-4">General Members</p>
 			<div class="flex flex-wrap justify-center gap-2">
 				{#each currentMembersWithImages as member}
 					<a href={member.linkedin} target="_blank" class="hover:bg-blue">
