@@ -527,7 +527,6 @@
 		color: white;
 	}
 	.input,
-	.select,
 	.file-input {
 		height: 40px !important;
 		min-height: 10px !important;
