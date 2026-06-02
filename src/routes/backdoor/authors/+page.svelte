@@ -366,7 +366,7 @@
 					{#if newAuthorPFP.src}
 						<img
 							src={newAuthorPFP.src}
-							alt="Profile image"
+							alt="Profile"
 							class="w-1/3 m-5 aspect-square object-cover rounded-lg"
 						/>
 					{/if}
@@ -413,14 +413,14 @@
 										<div class="badge badge-primary gap-2">
 											{article.title}
 											<button
-												class="btn btn-xs btn-circle"
+												class="btn btn-xs btn-circle !text-black bg-white"
 												on:click={() => {
 													newAuthorArticles = newAuthorArticles.filter(
 														(slug) => slug !== articleSlug
 													);
 												}}
 											>
-												×
+												x
 											</button>
 										</div>
 									{/if}
@@ -454,6 +454,14 @@
 						<div
 							class="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
 							on:click={() => selectAuthor(author)}
+							role="button"
+							tabindex=0
+							on:keydown={(e) => {
+								if(e.key === 'Enter'){
+									e.preventDefault();
+									selectAuthor(author);
+								}
+							}}
 						>
 							<div class="flex items-center gap-3 mb-2">
 								{#if author.pfpUrl}
@@ -489,7 +497,14 @@
 										href={author.linkedin}
 										target="_blank"
 										rel="noopener noreferrer"
-										on:click|stopPropagation>LinkedIn</a
+										on:click|stopPropagation
+										on:keydown={(e) => {
+											if(e.key === 'Enter'){
+												e.stopPropagation();
+											}
+										}}
+										>LinkedIn
+										</a
 									>
 								</div>
 							{/if}
