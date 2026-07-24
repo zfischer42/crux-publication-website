@@ -107,11 +107,11 @@
 	<img
 		src={thumbnail}
 		alt={journal.name}
-		class="w-40 h-auto rounded-md cursor-pointer duration-200 ease-in shadow hover:shadow-lg transform hover:scale-[1.03]"
+		class="w-40 h-56 object-cover object-top rounded-md cursor-pointer duration-200 ease-in shadow hover:shadow-lg transform hover:scale-[1.03]"
 		on:click={openModal}
 	/>
 
-	<button type="button" class="relative text-black pt-2 flex flex-col" on:click={openModal}>
+	<button type="button" class="relative text-black pt-2 flex flex-col items-center text-center" on:click={openModal}>
 		<span class="font-medium text-lg">{journal.name}</span>
 		<span class="text-base inline-block text-black"> {journal.title} </span>
 	</button>
