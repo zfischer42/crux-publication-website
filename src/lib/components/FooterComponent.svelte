@@ -12,26 +12,24 @@
 			Providing reliable tech insight since 2024
 		</p>
 	</aside>
-	<nav>
+	<!--<nav>
 		<h6 class="footer-title">Services</h6>
 		<a class="link link-hover" href="/about">Branding</a>
 		<a class="link link-hover" href="/about">Design</a>
 		<a class="link link-hover" href="/about">Marketing</a>
 		<a class="link link-hover" href="/about">Advertisement</a>
-	</nav>
+	</nav>-->
 	<nav>
 		<h6 class="footer-title">Company</h6>
 		<a class="link link-hover" href="/about">About us</a>
 		<a class="link link-hover" href="/about">Contact</a>
-		<a class="link link-hover" href="/about">Jobs</a>
-		<a class="link link-hover" href="/about">Press kit</a>
 	</nav>
-	<nav>
+	<!--<nav>
 		<h6 class="footer-title">Legal</h6>
 		<a class="link link-hover" href="/about">Terms of use</a>
 		<a class="link link-hover" href="/about">Privacy policy</a>
 		<a class="link link-hover" href="/about">Cookie policy</a>
-	</nav>
+	</nav>-->
 	<form>
 		<h6 class="footer-title">Newsletter</h6>
 		<fieldset class="form-control w-80">
