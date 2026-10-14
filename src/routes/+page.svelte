@@ -21,6 +21,7 @@
 	$: authorQuery = $page.url.searchParams.get('authorSearch') || '';
 
 	import PdfViewer from '$lib/components/PdfViewer.svelte';
+	import EventSectionComponent from '$lib/components/EventSectionComponent.svelte';
 
 	// List journal filenames (without extension)
 	const journals = [
@@ -68,6 +69,9 @@
 	</div>
 
 	<!-- <PdfViewer url="/CruX Journal 24-25.pdf" scale={1.0} /> -->
+	
+	<!-- Events Section -->
+	<EventSectionComponent />
 
 	<!-- View Journals -->
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 z-20 mb-2">
