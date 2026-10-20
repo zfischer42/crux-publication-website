@@ -4,6 +4,7 @@
 	import { doc, getDoc } from 'firebase/firestore';
 	import { ref, getDownloadURL } from 'firebase/storage';
 	import { goto } from '$app/navigation';
+	import OptimizedImage from './OptimizedImage.svelte';
 
 	export let authorId: string;
 
@@ -52,7 +53,12 @@
 <button on:click={handleAuthorClick} class="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-0.5 cursor-pointer hover:bg-gray-200 transition-colors">
 	<span class="text-xs font-medium text-gray-700">{authorName}</span>
 	{#if authorPfp}
-		<img src={authorPfp} alt="{authorName} profile" class="w-5 h-5 rounded-full object-cover" />
+		<OptimizedImage
+			src={authorPfp}
+			alt="{authorName} profile"
+			class="w-5 h-5 rounded-full object-cover"
+			width={32}
+		/>
 	{:else}
 		<div class="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center">
 			<span class="text-xs text-gray-600 font-bold">{authorName.charAt(0)}</span>

@@ -3,6 +3,7 @@
 	const LoadingGif = '/Loading.gif';
 	import { dummyArticle, dummyPreview } from '$lib/services/dummy';
 	import AuthorTag from './AuthorTag.svelte';
+	import OptimizedImage from './OptimizedImage.svelte';
 
 	export let preview: ArticlePreview = dummyPreview;
 </script>
@@ -12,10 +13,11 @@
 		class="group flex flex-col sm:flex-row mt-4 rounded-xl bg-white/75 transition duration-200 ease-in hover:shadow hover:brightness-95 border"
 	>
 		<div class="flex sm:flex-none w-auto sm:w-2/5 justify-center text-zinc-900">
-			<img
+			<OptimizedImage
 				class="object-cover h-48 w-96 rounded-xl sm:rounded-r-none"
 				src={preview.image.src}
 				alt="Album"
+				width={384}
 			/>
 		</div>
 		<div class="p-4 flex flex-col justify-between">
