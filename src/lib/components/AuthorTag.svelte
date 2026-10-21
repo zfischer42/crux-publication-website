@@ -30,7 +30,7 @@
 
 			if (authorSnap.exists()) {
 				const authorData = authorSnap.data();
-				authorName = authorData.name || '';
+				authorName = authorData.name || authorId;
 
 				// Convert Firebase Storage path to download URL
 				if (authorData.pfp) {
@@ -41,9 +41,13 @@
 						console.error('Error getting author image URL:', error);
 					}
 				}
+			} else {
+				// Fallback to the parsed author name if no profile doc exists in 'authors' yet
+				authorName = authorId;
 			}
 		} catch (error) {
 			console.error('Error loading author:', error);
+			authorName = authorId;
 		} finally {
 			loading = false;
 		}

@@ -1,6 +1,4 @@
 <script lang="ts">
-	// NOTE-- REMOVE THIS, only used for FileList error
-	// @ts-nocheck
 	import { session } from '$lib/services/session';
 	import { addArticle, db, storage } from '$lib/services/firebase.client';
 	import { auth } from '$lib/services/firebase.client';
@@ -382,8 +380,8 @@
 							<div class="flex flex-row w-full">
 								<div class="mb-3 me-1 grow">
 									<Editor
-										licenseKey="nr5tfa2k70yvg1zbuzu2rvguuhr5d4paqwbg3xp966forabr"
-										scriptSrc="https://cdn.tiny.cloud/1/nr5tfa2k70yvg1zbuzu2rvguuhr5d4paqwbg3xp966forabr/tinymce/7/tinymce.min.js"
+										licenseKey="gpl"
+										scriptSrc="/tinymce/tinymce.min.js"
 										bind:value={field.text}
 										conf={tinymceConfig}
 									/>
