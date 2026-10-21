@@ -51,11 +51,64 @@ export async function getAuthorIdByName(authorName: string): Promise<string | nu
         
         authorsSnap.docs.forEach(doc => {
             const authorData = doc.data();
-            authorNameToIdCache!.set(authorData.name.toLowerCase(), doc.id);
+            if (authorData.name) {
+                authorNameToIdCache!.set(authorData.name.trim().toLowerCase(), doc.id);
+            }
         });
     }
     
-    return authorNameToIdCache.get(authorName.toLowerCase()) || null;
+    return authorNameToIdCache.get(authorName.trim().toLowerCase()) || null;
+}
+
+/**
+ * Parse an author string (potentially containing multiple collaborators separated by ',', '&', or 'and')
+ * and merge resolved author IDs with any existing author IDs on the article.
+ */
+export async function resolveAuthors(existingAuthors: string[] = [], authorString: string = ''): Promise<string[]> {
+    const resolvedIds: string[] = [];
+    const seen = new Set<string>();
+
+    const addId = (id: string | null) => {
+        if (!id) return;
+        const key = id.toLowerCase();
+        if (!seen.has(key)) {
+            seen.add(key);
+            resolvedIds.push(id);
+        }
+    };
+
+    if (Array.isArray(existingAuthors)) {
+        for (const id of existingAuthors) {
+            if (typeof id === 'string' && id.trim()) {
+                addId(id.trim());
+            }
+        }
+    }
+
+    if (authorString && typeof authorString === 'string') {
+        const trimmedFull = authorString.trim();
+        if (trimmedFull && trimmedFull.toLowerCase() !== 'unknown') {
+            // First try matching the full string in case it's a single author in Firestore
+            const fullMatchId = await getAuthorIdByName(trimmedFull);
+            if (fullMatchId) {
+                addId(fullMatchId);
+            } else {
+                // Split by comma, ampersand, or the word "and"
+                const parts = trimmedFull
+                    .split(/\s*(?:,|&|\band\b)\s*/i)
+                    .map(part => part.trim())
+                    .filter(Boolean);
+
+                for (const part of parts) {
+                    const partId = await getAuthorIdByName(part);
+                    // Use the Firestore author ID if found, or fallback to the parsed name so AuthorTag still renders
+                    addId(partId || part);
+                }
+            }
+        }
+    }
+
+    return resolvedIds;
 }
 
 export async function getArticles(category : Category) {    
@@ -79,15 +132,8 @@ export async function getArticles(category : Category) {
 
                 const image: Content = await getImage(docData.image as Content);
 
-                // Handle legacy author field - if authors array is empty but author field exists,
-                // we'll try to find the author ID by name
-                let authors = docData.authors || [];
-                if (authors.length === 0 && docData.author) {
-                    const authorId = await getAuthorIdByName(docData.author);
-                    if (authorId) {
-                        authors = [authorId];
-                    }
-                }
+                // Handle legacy author field - resolve single or comma-separated collaborators
+                const authors = await resolveAuthors(docData.authors, docData.author);
 
                 const article = {
                     slug        : docData.slug || '',
@@ -142,13 +188,7 @@ export async function getAllArticlesWithContent() {
                 const mainImage: Content = await getImage(docData.preview?.image as Content);
                 
                 // Handle legacy author field
-                let authors = docData.preview?.authors || [];
-                if (authors.length === 0 && docData.preview?.author) {
-                    const authorId = await getAuthorIdByName(docData.preview.author);
-                    if (authorId) {
-                        authors = [authorId];
-                    }
-                }
+                const authors = await resolveAuthors(docData.preview?.authors, docData.preview?.author);
                 
                 const preview = {
                     slug: docData.preview?.slug || doc.id || '',
@@ -233,13 +273,7 @@ export async function loadArticle(slug : string){
         const mainImage: Content = await getImage(docData.preview.image as Content);
 
         // Handle legacy author field for individual article loading
-        let authors = docData.preview.authors || [];
-        if (authors.length === 0 && docData.preview.author) {
-            const authorId = await getAuthorIdByName(docData.preview.author);
-            if (authorId) {
-                authors = [authorId];
-            }
-        }
+        const authors = await resolveAuthors(docData.preview.authors, docData.preview.author);
 
         const preview = {
             slug        : docData.preview.slug,
@@ -298,13 +332,7 @@ export async function searchArticles(search: string, category: Category, sortBy:
 			const image: Content = await getImage(docData.image as Content);
 
 			// Handle legacy author field for search results
-			let authors = docData.authors || [];
-			if (authors.length === 0 && docData.author) {
-				const authorId = await getAuthorIdByName(docData.author);
-				if (authorId) {
-					authors = [authorId];
-				}
-			}
+			const authors = await resolveAuthors(docData.authors, docData.author);
 
 			const article = {
 				slug: docData.slug,
@@ -329,12 +357,17 @@ export async function searchArticles(search: string, category: Category, sortBy:
 		articles = articles.filter(
 			(article) => {
 				// Check if it's a title or description match
-				const titleMatch = article.title.toLowerCase().includes(lowerSearch);
-				const descriptionMatch = article.description.toLowerCase().includes(lowerSearch);
+				const titleMatch = (article.title || '').toLowerCase().includes(lowerSearch);
+				const descriptionMatch = (article.description || '').toLowerCase().includes(lowerSearch);
 				
 				// Check if it's an author match (either legacy author field or authors array)
-				const legacyAuthorMatch = article.author.toLowerCase().includes(lowerSearch);
-				const authorIdMatch = searchAuthorId && article.authors && article.authors.includes(searchAuthorId);
+				const legacyAuthorMatch = (article.author || '').toLowerCase().includes(lowerSearch);
+				const authorIdMatch = Boolean(
+					article.authors && (
+						(searchAuthorId && article.authors.includes(searchAuthorId)) ||
+						article.authors.some(a => a.toLowerCase().includes(lowerSearch))
+					)
+				);
 				
 				return titleMatch || descriptionMatch || legacyAuthorMatch || authorIdMatch;
 			}
