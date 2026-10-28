@@ -36,3 +36,8 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+
+## Documentation
+
+- [TinyMCE Developer Documentation](docs/TINYMCE_GUIDE.md) — Architecture, self-hosting setup (`static/tinymce`), editor configuration, Firestore persistence, and frontend rendering notes.
