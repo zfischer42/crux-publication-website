@@ -126,6 +126,9 @@
 	</div>
 
 	<!-- <PdfViewer url="/CruX Journal 24-25.pdf" scale={1.0} /> -->
+	
+	<!-- Events Section -->
+	<EventSectionComponent />
 
 	<!-- View Journals -->
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 mb-2">
