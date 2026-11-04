@@ -39,7 +39,8 @@
 		"@supabase/supabase-js": "^2.44.4",
 		"@tinymce/tinymce-svelte": "^3.0.0",
 		"firebase": "^13.2.0",
-		"pdfjs-dist": "^5.3.31"
+		"pdfjs-dist": "^5.3.31",
+		"tinymce": "^8.10.1"
 	},
 	"engines": {
 		"node": "24.x"

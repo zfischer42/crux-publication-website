@@ -22,6 +22,7 @@
 
 	import PdfViewer from '$lib/components/PdfViewer.svelte';
 	import EventViewer from '$lib/components/EventViewer.svelte';
+	import EventSectionComponent from '$lib/components/EventSectionComponent.svelte';
 
 	// List journal filenames (without extension)
 	const journals = [
