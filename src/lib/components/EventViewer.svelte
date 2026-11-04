@@ -17,7 +17,10 @@
 		flyers?: { src: string; alt: string }[];
 		speakers?: { name: string; topic: string }[];
 		audioUrl?: string;
+		audioDescription?: string;
 	};
+
+	$: audioFilename = `${event.name.replace(/[^a-z0-9]+/gi, '_')}_Recording.mp3`;
 
 	let open = false;
 	let selectedImage: { src: string; alt: string } | null = null;
@@ -30,18 +33,18 @@
 	}
 
 	function closeModal() {
-		if (selectedImage) {
-			selectedImage = null;
-			return;
-		}
+		selectedImage = null;
 		open = false;
 		if (typeof window !== 'undefined') {
 			window.removeEventListener('keydown', handleKeydown);
 		}
 	}
 
+	// Escape closes the flyer lightbox first, then the event modal
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') closeModal();
+		if (e.key !== 'Escape') return;
+		if (selectedImage) selectedImage = null;
+		else closeModal();
 	}
 
 	onDestroy(() => {
@@ -91,10 +94,7 @@
 	<div
 		aria-label="Close event viewer"
 		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[20] p-4"
-		on:click={() => {
-			selectedImage = null;
-			open = false;
-		}}
+		on:click={closeModal}
 		on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && closeModal()}
 	>
 		<!-- Modal Content -->
@@ -105,7 +105,7 @@
 			aria-modal="true"
 			aria-label={event.title}
 			tabindex="-1"
-			class="relative w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg flex flex-col shadow-xl cursor-default bg-gradient-to-b from-zinc-800/75 via-[rgba(39,39,42,1)_75%] to-zinc-800 p-5 md:p-7 text-zinc-100"
+			class="relative w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg flex flex-col shadow-xl cursor-default bg-gradient-to-b from-zinc-800/95 via-[rgba(39,39,42,1)_75%] to-zinc-800 p-5 md:p-7 text-zinc-100"
 			on:click|stopPropagation
 		>
 			<!-- Close Button -->
@@ -113,10 +113,7 @@
 				type="button"
 				aria-label="Close"
 				class="absolute top-3 right-3 z-20 text-white rounded px-2 text-xl focus:outline-none cursor-pointer"
-				on:click={() => {
-					selectedImage = null;
-					open = false;
-				}}
+				on:click={closeModal}
 			>
 				✕
 			</button>
@@ -236,25 +233,24 @@
 							<span class="flex h-3 w-3 relative">
 								<span class="relative inline-flex rounded-full h-3 w-3 bg-[#07d1f9]"></span>
 							</span>
-							<h4 class="text-base font-bold text-white">Listen to the Panel Recording</h4>
+							<h4 class="text-base font-bold text-white">Listen to the Recording</h4>
 						</div>
 						<a
 							href={event.audioUrl}
-							download="Neurotech_Panel_Recording.mp3"
+							download={audioFilename}
 							class="text-xs font-mono text-[#07d1f9] hover:underline flex items-center gap-1 self-start sm:self-auto"
 						>
 							Download Audio (.mp3)
 						</a>
 					</div>
-					<p class="text-xs text-zinc-300 mb-3">
-						Tune in to the complete live conversation with UCLA researchers discussing brain-machine
-						interfaces, motor decoding, and neuroprosthetics.
-					</p>
+					{#if event.audioDescription}
+						<p class="text-xs text-zinc-300 mb-3">{event.audioDescription}</p>
+					{/if}
 					<audio
 						controls
 						preload="metadata"
 						class="w-full accent-[#315AB0] rounded"
-						aria-label="Neurotechnology Panel Audio Recording"
+						aria-label="{event.name} Audio Recording"
 					>
 						<source src={event.audioUrl} type="audio/mpeg" />
 						Your browser does not support the audio element.

@@ -22,8 +22,6 @@
 
 	import PdfViewer from '$lib/components/PdfViewer.svelte';
 	import EventViewer from '$lib/components/EventViewer.svelte';
-	import EventSectionComponent from '$lib/components/EventSectionComponent.svelte';
-
 	// List journal filenames (without extension)
 	const journals = [
 		{ name: 'CruX Journal 24-25', title: 'Human Subjectivity and Experience' },
@@ -85,7 +83,9 @@
 					topic: 'FDA-approved neural prosthetics & implantable tech'
 				}
 			],
-			audioUrl: '/events/neurotech_panel_media/panel_audio.mp3'
+			audioUrl: '/events/neurotech_panel_media/panel_audio.mp3',
+			audioDescription:
+				'Tune in to the complete live conversation with UCLA researchers discussing brain-machine interfaces, motor decoding, and neuroprosthetics.'
 		}
 	];
 </script>
@@ -127,9 +127,6 @@
 	</div>
 
 	<!-- <PdfViewer url="/CruX Journal 24-25.pdf" scale={1.0} /> -->
-	
-	<!-- Events Section -->
-	<EventSectionComponent />
 
 	<!-- View Journals -->
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 mb-2">

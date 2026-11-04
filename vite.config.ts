@@ -26,6 +26,10 @@ export default defineConfig({
 		__VERCEL_IMAGES__: JSON.stringify(!!process.env.VERCEL)
 	},
 	ssr: {
-		noExternal: ['pdfjs-dist']
+		noExternal: ['pdfjs-dist'],
+		// Keep Svelte 4 unbundled on the server. Bundling reformats its no-op onMount, which breaks
+		// SvelteKit's Svelte 4 detection and crashes SSR with "$state is not defined".
+		// Remove after migrating to Svelte 5.
+		external: ['svelte']
 	}
 });
