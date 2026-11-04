@@ -9,7 +9,6 @@
 	import { goto } from '$app/navigation';
 	import type { Article, Content } from '$lib/services/article.types';
 	import Editor from '@tinymce/tinymce-svelte';
-	import { Button } from 'flowbite-svelte';
 
 	// DATA MANAGEMENT
 	export let data;
