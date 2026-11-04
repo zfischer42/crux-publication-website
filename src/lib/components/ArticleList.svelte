@@ -133,9 +133,9 @@
 			<!-- List Header if it exists -->
 			{#if header !== ''}
 				<div
-					class="flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg md:bg-transparent md:p-0 md:rounded-none md:mb-3"
+					class="relative z-10 flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg"
 				>
-					<div class="flex-none text-3xl font-bold text-zinc-100 md:text-zinc-900">{header}</div>
+					<div class="flex-none text-3xl font-bold text-zinc-100">{header}</div>
 				</div>
 			{/if}
 

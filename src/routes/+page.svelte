@@ -132,8 +132,8 @@
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 mb-2">
 		<div class="flex flex-col h-full">
 			<!-- Header -->
-			<div class="relative z-10 flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg md:bg-transparent md:p-0 md:rounded-none md:mb-3">
-				<h2 class="text-3xl font-bold text-zinc-100 md:text-zinc-900">Journals</h2>
+			<div class="relative z-10 flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg">
+				<h2 class="text-3xl font-bold text-zinc-100">Journals</h2>
 			</div>
 
 			<!-- Row of journal thumbnails -->
@@ -153,8 +153,8 @@
 	<div class="mx-auto px-3 w-full md:w-3/4 lg:w-3/5 md:mt-3 mb-2">
 		<div class="flex flex-col h-full">
 			<!-- Header -->
-			<div class="relative z-10 flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg md:bg-transparent md:p-0 md:rounded-none md:mb-3">
-				<h2 class="text-3xl font-bold text-zinc-100 md:text-zinc-900">Events</h2>
+			<div class="relative z-10 flex-none w-full bg-gradient-to-r from-[#315AB0] to-[#07d1f9c1] p-3 rounded-t-lg">
+				<h2 class="text-3xl font-bold text-zinc-100">Events</h2>
 			</div>
 
 			<!-- Row of event thumbnails -->
