@@ -105,7 +105,7 @@
 			aria-modal="true"
 			aria-label={event.title}
 			tabindex="-1"
-			class="relative w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg flex flex-col shadow-xl cursor-default bg-gradient-to-b from-zinc-800/95 via-[rgba(39,39,42,1)_75%] to-zinc-800 p-5 md:p-7 text-zinc-100"
+			class="relative w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg flex flex-col shadow-xl cursor-default bg-zinc-800 p-5 md:p-7 text-zinc-100"
 			on:click|stopPropagation
 		>
 			<!-- Close Button -->
@@ -181,9 +181,6 @@
 								</button>
 							{/each}
 						</div>
-						<p class="text-xs text-zinc-300 italic text-center">
-							Click either flyer to view high-resolution poster
-						</p>
 					</div>
 				{/if}
 
@@ -225,9 +222,7 @@
 
 			<!-- Audio Recording Player -->
 			{#if event.audioUrl}
-				<div
-					class="mt-4 pt-5 bg-zinc-900/60 p-4 md:p-5 rounded-lg border border-zinc-700"
-				>
+				<div class="mt-4 pt-5 bg-zinc-900/60 p-4 md:p-5 rounded-lg border border-zinc-700">
 					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
 						<div class="flex items-center gap-2">
 							<span class="flex h-3 w-3 relative">
