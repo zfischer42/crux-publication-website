@@ -1,5 +1,6 @@
 <script lang="ts">
 	import BackgroundComponent from '$lib/components/BackgroundComponent.svelte';
+	import OptimizedImage from '$lib/components/OptimizedImage.svelte';
 	import { storage } from '$lib/services/firebase.client';
 	import { ref, getDownloadURL } from 'firebase/storage';
 	import { onMount } from 'svelte';
@@ -125,7 +126,7 @@
 								<div class="mx-auto avatar mb-1">
 									<div class="w-24 rounded-full">
 										{#if member.profilePic}
-											<img src={member.profilePic} alt="{member.name} profile pic" />
+											<OptimizedImage src={member.profilePic} alt="{member.name} profile pic" width={96} />
 										{:else}
 											<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
 												<span class="text-gray-600 font-bold text-xl">
@@ -158,7 +159,7 @@
 							<div class="mx-auto avatar mb-1">
 								<div class="w-24 rounded-full">
 									{#if member.profilePic}
-										<img src={member.profilePic} alt="{member.name} profile pic" />
+										<OptimizedImage src={member.profilePic} alt="{member.name} profile pic" width={96} />
 									{:else}
 										<div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
 											<span class="text-gray-600 font-bold text-xl">{member.name.charAt(0)}</span>
@@ -191,7 +192,7 @@
 								<div class="mx-auto avatar mb-1">
 									<div class="w-24 rounded-full">
 										{#if member.profilePic}
-											<img src={member.profilePic} alt="{member.name} profile pic" />
+											<OptimizedImage src={member.profilePic} alt="{member.name} profile pic" width={96} />
 										{:else}
 											<div
 												class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center"

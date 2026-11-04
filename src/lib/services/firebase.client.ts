@@ -12,7 +12,7 @@ import type { FirebaseStorage } from 'firebase/storage';
 import type { Firestore       } from 'firebase/firestore';
 import type { Auth            } from 'firebase/auth';
 import type { ArticlePreview, Content         } from './article.types';
-import { getAuthorIdByName } from './firebase.services';
+import { resolveAuthors } from './firebase.services';
 
 const FIREBASE_CONFIG = {
     apiKey            : import.meta.env.VITE_FIREBASE_API_KEY,
@@ -95,14 +95,8 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
             }
         }
 
-        // Handle authors array - if not provided, try to get author ID from author name
-        let authorsArray = articlePreview.authors || [];
-        if (authorsArray.length === 0 && articlePreview.author) {
-            const authorId = await getAuthorIdByName(articlePreview.author);
-            if (authorId) {
-                authorsArray = [authorId];
-            }
-        }
+        // Handle authors array - resolve single or comma-separated author names
+        const authorsArray = await resolveAuthors(articlePreview.authors, articlePreview.author);
 
         // Add doc to Firestore
         const processedPreview = {

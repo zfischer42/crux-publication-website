@@ -4,6 +4,7 @@
 	import { dummyArticle, dummyPreview } from '$lib/services/dummy';
 	import { FormatDateTime } from '$lib/services/helpers';
 	import AuthorTag from './AuthorTag.svelte';
+	import OptimizedImage from './OptimizedImage.svelte';
 
 	export let preview: ArticlePreview = dummyPreview;
 </script>
@@ -13,10 +14,12 @@
 		class="w-full h-full flex flex-col bg-zinc-800 rounded-lg duration-200 ease-in shadow-md hover:bg-zinc-900 hover:shadow-lg"
 	>
 		<!-- Image -->
-		<img
+		<OptimizedImage
 			class="flex-none object-cover w-full h-full max-h-72 rounded-t-lg"
 			src={preview.image?.src}
 			alt={preview.description}
+			width={828}
+			eager
 		/>
 
 		<!-- Title -->

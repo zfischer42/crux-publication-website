@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist';
+	import OptimizedImage from './OptimizedImage.svelte';
 
 	export let journal: { name: string; title: string };
 	let pdf_url: string = `/journal_pdfs/${journal.name}.pdf`;
@@ -102,12 +103,11 @@
 
 <!-- Open Button -->
 <div class="flex flex-col items-center p-2 mx-4">
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-	<img
+	<OptimizedImage
 		src={thumbnail}
 		alt={journal.name}
 		class="w-40 h-56 object-cover object-top rounded-md cursor-pointer duration-200 ease-in shadow hover:shadow-lg transform hover:scale-[1.03]"
+		width={160}
 		on:click={openModal}
 	/>
 

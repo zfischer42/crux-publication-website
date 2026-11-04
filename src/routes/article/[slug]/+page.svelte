@@ -3,6 +3,7 @@
 	import ArticlePreviewCard from '$lib/components/ArticlePreviewCard.svelte';
 	import { FormatDateTime } from '$lib/services/helpers';
 	import AuthorTag from '$lib/components/AuthorTag.svelte';
+	import OptimizedImage from '$lib/components/OptimizedImage.svelte';
 
 	export let data: { article: Article } | undefined;
 	let loading = true;
@@ -45,7 +46,13 @@
 
 		<!-- TITLE IMAGE -->
 		<div class="mt-8 w-full">
-			<img class="w-full object-contain" src={preview.image.src} alt={preview.description} />
+			<OptimizedImage
+				class="w-full object-contain"
+				src={preview.image.src}
+				alt={preview.description}
+				width={700}
+				eager
+			/>
 			{#if preview.image.credits && preview.image.credits.trim() !== ''}
 				<p class="text-zinc-500 mt-2 font-serif text-sm font-light text-center italic">
 					{preview.image.credits}
@@ -64,7 +71,12 @@
 				{#if content.type === 'image'}
 					<!-- IMAGE -->
 					<div class="mb-7">
-						<img class="w-full object-cover mx-0" src={content?.src} alt={'Image'} />
+						<OptimizedImage
+							class="w-full object-cover mx-0"
+							src={content?.src}
+							alt={'Image'}
+							width={700}
+						/>
 						{#if content.credits && content.credits.trim() !== ''}
 							<p class="text-zinc-500 mt-2 font-serif text-sm font-light text-center italic">
 								{content.credits}
