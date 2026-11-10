@@ -1,5 +1,9 @@
 <script>
 	const crux_logo = '/CruXLogo.png';
+
+	function goToBackdoor() {
+		window.location.href = '/backdoor';
+	}
 </script>
 
 <footer class="footer bg-zinc-900 text-primary-content p-10 z-10">
@@ -23,6 +27,17 @@
 		<h6 class="footer-title">Company</h6>
 		<a class="link link-hover" href="/about">About us</a>
 		<a class="link link-hover" href="/about">Contact</a>
+	</nav>
+	<nav>
+		<h6 class="footer-title">Staff & Authors</h6>
+		<a
+			href="/backdoor"
+			data-sveltekit-reload
+			on:click|preventDefault={goToBackdoor}
+			class="btn btn-accent btn-sm text-white font-medium"
+		>
+			Backdoor Login →
+		</a>
 	</nav>
 	<!--<nav>
 		<h6 class="footer-title">Legal</h6>
