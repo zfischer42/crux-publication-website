@@ -7,7 +7,7 @@
 
 	// Routing path
 	import { page } from '$app/stores';
-	let path;
+	let path: string;
 	$: path = $page.url.pathname; // @param {string} currentPath
 
 	import { onMount } from 'svelte';
