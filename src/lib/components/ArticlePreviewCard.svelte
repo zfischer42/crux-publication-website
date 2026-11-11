@@ -33,7 +33,7 @@
 				{preview.description}
 			</p>
 
-			<!-- Author/date -->
+			<!-- Author/date/views -->
 			<div class="flex flex-wrap items-center gap-y-1 text-zinc-700 group-hover:text-zinc-800 ease-in duration-200">
 				{#if preview.authors && preview.authors.length > 0}
 					<div class="flex flex-wrap items-center gap-2 pe-5">
@@ -46,7 +46,27 @@
 				{:else}
 					<p class="font-bold pe-5">{preview.author}</p>
 				{/if}
-				<p>{FormatDateTime(preview.date)}</p>
+				<div class="flex items-center gap-2 text-zinc-500">
+					<p>{FormatDateTime(preview.date)}</p>
+					<span>•</span>
+					<span class="inline-flex items-center gap-1" title="{(preview.views ?? 0).toLocaleString()} {(preview.views ?? 0) === 1 ? 'view' : 'views'}">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="w-4 h-4 opacity-75"
+							aria-hidden="true"
+						>
+							<path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+							<path
+								fill-rule="evenodd"
+								d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+						{(preview.views ?? 0).toLocaleString()}
+					</span>
+				</div>
 			</div>
 		</div>
 
@@ -70,7 +90,7 @@
 
 				<div class="grow"></div>
 
-				<!-- Author/date -->
+				<!-- Author/date/views -->
 				<div class="flex flex-wrap items-center gap-y-1 text-zinc-700 group-hover:text-zinc-800 ease-in duration-200">
 					{#if preview.authors && preview.authors.length > 0}
 						<div class="flex flex-wrap items-center gap-2 pe-5">
@@ -83,7 +103,27 @@
 					{:else}
 						<p class="font-bold pe-5">{preview.author}</p>
 					{/if}
-					<p>{FormatDateTime(preview.date)}</p>
+					<div class="flex items-center gap-2 text-zinc-500">
+						<p>{FormatDateTime(preview.date)}</p>
+						<span>•</span>
+						<span class="inline-flex items-center gap-1" title="{(preview.views ?? 0).toLocaleString()} {(preview.views ?? 0) === 1 ? 'view' : 'views'}">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="w-4 h-4 opacity-75"
+								aria-hidden="true"
+							>
+								<path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+								<path
+									fill-rule="evenodd"
+									d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+							{(preview.views ?? 0).toLocaleString()}
+						</span>
+					</div>
 				</div>
 			</div>
 

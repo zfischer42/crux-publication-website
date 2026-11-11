@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, increment, query, setDoc, where } from "firebase/firestore";
 import type { Content, Category, ArticlePreview, Article } from "./article.types";
 import { db, storage } from "./firebase.client";
 import { getDownloadURL, ref } from "firebase/storage";
@@ -144,6 +144,7 @@ export async function getArticles(category : Category) {
                     categories  : docData.categories || [],
                     description : docData.description || '',
                     image       : image,
+                    views       : typeof docData.views === 'number' ? docData.views : 0,
                 };
                 
                 return article;
@@ -199,6 +200,7 @@ export async function getAllArticlesWithContent() {
                     categories: docData.preview?.categories || [],
                     description: docData.preview?.description || '',
                     image: mainImage,
+                    views: typeof docData.preview?.views === 'number' ? docData.preview.views : (typeof docData.views === 'number' ? docData.views : 0),
                 };
                 
                 // Load all content images
@@ -284,6 +286,7 @@ export async function loadArticle(slug : string){
             categories  : docData.preview.categories,
             description : docData.preview.description,
             image       : mainImage,
+            views       : typeof docData.preview.views === 'number' ? docData.preview.views : (typeof docData.views === 'number' ? docData.views : 0),
         };
 
         articleContent = { 
@@ -342,7 +345,8 @@ export async function searchArticles(search: string, category: Category, sortBy:
 				date: safeToDate(docData.date),
 				categories: docData.categories,
 				description: docData.description,
-				image: image
+				image: image,
+				views: typeof docData.views === 'number' ? docData.views : 0
 			};
 
 			return article;
@@ -385,12 +389,33 @@ export async function searchArticles(search: string, category: Category, sortBy:
         case 'a-z':
             articles.sort((a, b) => a.title.localeCompare(b.title));
             break;
+        case 'views':
+            articles.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+            break;
         default:
             break;
     }
     console.log(articles);
     
 	return articles;
+}
+
+/**
+ * Atomically increment the view count for an article in both article-preview and article-content
+ */
+export async function incrementArticleViews(slug: string): Promise<void> {
+    if (!slug) return;
+    try {
+        const previewRef = doc(db, 'article-preview', slug);
+        const contentRef = doc(db, 'article-content', slug);
+
+        await Promise.all([
+            setDoc(previewRef, { views: increment(1) }, { merge: true }),
+            setDoc(contentRef, { preview: { views: increment(1) } }, { merge: true })
+        ]);
+    } catch (error) {
+        console.error('Error incrementing article views:', error);
+    }
 }
 
 // Copy all articles from articles to article-preview and article-content

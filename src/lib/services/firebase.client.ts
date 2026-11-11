@@ -115,10 +115,10 @@ export async function addArticle(articlePreview : ArticlePreview, content : Cont
             content : processedContent,
         }
 
-        await setDoc(doc(db, "article-preview", slug), processedPreview);
+        await setDoc(doc(db, "article-preview", slug), processedPreview, { merge: true });
         console.log("Preview successfully added");
 
-        await setDoc(doc(db, "article-content", slug), processedArticle);
+        await setDoc(doc(db, "article-content", slug), processedArticle, { merge: true });
         console.log("Content successfully added");
     } catch (error) {
         console.error('Error occurred while adding the article:', error);

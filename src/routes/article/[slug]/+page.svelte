@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { Article, Content, ArticlePreview } from '$lib/services/article.types';
 	import ArticlePreviewCard from '$lib/components/ArticlePreviewCard.svelte';
 	import { FormatDateTime } from '$lib/services/helpers';
+	import { incrementArticleViews } from '$lib/services/firebase.services';
 	import AuthorTag from '$lib/components/AuthorTag.svelte';
 	import OptimizedImage from '$lib/components/OptimizedImage.svelte';
 
@@ -9,12 +11,27 @@
 	let loading = true;
 	let preview: ArticlePreview;
 	let content: Content[];
+	let viewCount = 0;
+	let lastTrackedSlug = '';
 
 	$: if (data) {
 		loading = false;
 		preview = data.article.preview;
-		console.log(preview);
 		content = data.article.content;
+
+		if (preview?.slug && preview.slug !== lastTrackedSlug) {
+			lastTrackedSlug = preview.slug;
+			viewCount = preview.views ?? 0;
+
+			if (browser) {
+				const storageKey = `crux_viewed_${preview.slug}`;
+				if (!sessionStorage.getItem(storageKey)) {
+					sessionStorage.setItem(storageKey, '1');
+					viewCount += 1;
+					incrementArticleViews(preview.slug);
+				}
+			}
+		}
 	}
 </script>
 
@@ -27,9 +44,9 @@
 		>
 			{preview.title}
 		</div>
-		<!-- AUTHOR/DATE -->
+		<!-- AUTHOR/DATE/VIEWS -->
 		<div
-			class="font-serif flex flex-row justify-center gap-2 text-zinc-500 mb-1 text-md md:text-md"
+			class="font-serif flex flex-wrap items-center justify-center gap-2 text-zinc-500 mb-1 text-md md:text-md"
 		>
 			{#if preview.authors && preview.authors.length > 0}
 				<div class="flex items-center gap-2">
@@ -42,6 +59,24 @@
 			{/if}
 			<p>•</p>
 			<p>{FormatDateTime(preview.date)}</p>
+			<p>•</p>
+			<div class="flex items-center gap-1" title="{viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+					class="w-4 h-4 opacity-75"
+					aria-hidden="true"
+				>
+					<path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+					<path
+						fill-rule="evenodd"
+						d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+						clip-rule="evenodd"
+					/>
+				</svg>
+				<span>{viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}</span>
+			</div>
 		</div>
 
 		<!-- TITLE IMAGE -->

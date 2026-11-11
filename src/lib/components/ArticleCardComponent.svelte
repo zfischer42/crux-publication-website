@@ -26,7 +26,7 @@
 				<h2 class="text pt-1 pb-2 text-zinc-500 md:line-clamp-3">{preview.description}</h2>
 			</div>
 			<div class="flex flex-row justify-between text-zinc-500">
-				<div>
+				<div class="flex flex-wrap items-center gap-2">
 					{#if preview.authors && preview.authors.length > 0}
 						<div class="flex items-center gap-2">
 							{#each preview.authors as authorId}
@@ -36,7 +36,25 @@
 					{:else}
 						<b>{preview.author}</b>
 					{/if}
-					{preview.date}
+					<span>{preview.date}</span>
+					<span>•</span>
+					<span class="inline-flex items-center gap-1" title="{(preview.views ?? 0).toLocaleString()} {(preview.views ?? 0) === 1 ? 'view' : 'views'}">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="w-4 h-4 opacity-75"
+							aria-hidden="true"
+						>
+							<path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+							<path
+								fill-rule="evenodd"
+								d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+						{(preview.views ?? 0).toLocaleString()}
+					</span>
 				</div>
 				<div>
 					<a

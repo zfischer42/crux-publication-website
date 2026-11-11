@@ -116,6 +116,7 @@
 			>
 				<option disabled value="none">Sort</option>
 				<option value="date">Date</option>
+				<option value="views">Most Viewed</option>
 				<option value="author">Author</option>
 				<option value="a-z">A-Z</option>
 			</select>
