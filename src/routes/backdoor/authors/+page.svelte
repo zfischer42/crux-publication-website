@@ -13,6 +13,7 @@
 	import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import ImageCropperModal from '$lib/components/ImageCropperModal.svelte';
 
 	// DATA MANAGEMENT
 	export let data;
@@ -46,6 +47,11 @@
 	let existingAuthors: any[] = [];
 	let selectedAuthor: any = null;
 	let isEditing = false;
+
+	// Author Headshot Cropper Modal state
+	let cropModalOpen = false;
+	let cropModalSrc = '';
+	let cropModalFileName = '';
 
 	// Auto-load authors when component mounts
 	onMount(async () => {
@@ -123,15 +129,32 @@
 	 * Handle author profile image upload
 	 */
 	function handleAuthorImageUpload(event: any) {
-		const file = event.target.files[0];
+		const file = event.target.files?.[0];
 		if (file) {
-			newAuthorPFP = {
-				file: file,
-				type: 'image',
-				fileName: file.name,
-				src: URL.createObjectURL(file)
-			};
+			cropModalFileName = file.name;
+			cropModalSrc = URL.createObjectURL(file);
+			cropModalOpen = true;
 		}
+		if (event.target) {
+			event.target.value = '';
+		}
+	}
+
+	function handleAuthorCropConfirm(
+		event: CustomEvent<{ file: File; url: string; fileName: string; width: number; height: number }>
+	) {
+		const { file, url, fileName } = event.detail;
+		newAuthorPFP = {
+			file,
+			type: 'image',
+			fileName,
+			src: url
+		};
+		cropModalOpen = false;
+	}
+
+	function handleAuthorCropCancel() {
+		cropModalOpen = false;
 	}
 
 	/**
@@ -506,6 +529,15 @@
 		{/if}
 	</div>
 </div>
+
+<ImageCropperModal
+	open={cropModalOpen}
+	imageSrc={cropModalSrc}
+	fileName={cropModalFileName}
+	preset="author-pfp"
+	on:confirm={handleAuthorCropConfirm}
+	on:cancel={handleAuthorCropCancel}
+/>
 
 <style>
 	.btn {

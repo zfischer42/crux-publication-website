@@ -8,6 +8,7 @@ export interface ArticlePreview {
     description : string,
     image       : Content,
     likes      ?: number,
+    views      ?: number,
 }
 
 export interface Article {
