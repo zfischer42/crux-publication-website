@@ -14,7 +14,7 @@
 		<!-- SMALL SCREEN COLUMN -->
 		<div class="flex flex-col md:hidden">
 			<OptimizedImage
-				class="w-max-full aspect-[2/1] object-cover rounded-lg"
+				class="w-full aspect-[2/1] object-cover rounded-lg"
 				src={preview.image.src}
 				alt={preview.description}
 				width={640}
@@ -90,7 +90,7 @@
 			<div class="flex-none w-1/3">
 				<!-- Image -->
 				<OptimizedImage
-					class="w-max-full aspect-[4/3] object-cover rounded-lg"
+					class="w-full aspect-[4/3] object-cover rounded-lg"
 					src={preview.image.src}
 					alt={preview.description}
 					width={384}

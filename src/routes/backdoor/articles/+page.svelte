@@ -7,6 +7,7 @@
 	import { goto } from '$app/navigation';
 	import type { Article, Content } from '$lib/services/article.types';
 	import Editor from '@tinymce/tinymce-svelte';
+	import ImageCropperModal from '$lib/components/ImageCropperModal.svelte';
 
 	// DATA MANAGEMENT
 	export let data;
@@ -37,12 +38,18 @@
 
 	let newDescription = 'This is a description';
 
-	let newImage = { type: '', src: '' };
+	let newImage: Content = { type: 'image', src: '' };
 	let articleObject: Article;
 	let errorMessages: string[] = [];
 
 	let fields: Content[] = []; // Array to manage all fields
 	let coverPhotoInput: HTMLInputElement; // Reference to hidden cover photo input
+
+	// Image Cropper Modal state
+	let cropModalOpen = false;
+	let cropModalSrc = '';
+	let cropModalFileName = '';
+	let cropTargetIndex = -1; // -1 for cover photo, >= 0 for content image field
 
 	// TinyMCE config with event handler (for text fields )
 	let tinymceConfig = {
@@ -130,30 +137,47 @@
 	 * @param {string | number} index
 	 */
 	function handleImageUpload(event: any, index = -1) {
-		const file = event.target.files[0];
+		const file = event.target.files?.[0];
 
-		console.log(event.target.files);
 		if (file) {
-			if (index !== -1) {
-				// Image upload to article
-				fields[index] = {
-					file: file,
-					fileName: file.name,
-					type: 'image',
-					src: URL.createObjectURL(file),
-					credits: fields[index]?.credits || '' // Preserve existing credits
-				};
-			} else {
-				// Image upload to Main Photo
-				newImage = {
-					file: file,
-					type: 'image',
-					fileName: file.name,
-					src: URL.createObjectURL(file),
-					credits: newImage?.credits || '' // Preserve existing credits
-				};
-			}
+			cropTargetIndex = Number(index);
+			cropModalFileName = file.name;
+			cropModalSrc = URL.createObjectURL(file);
+			cropModalOpen = true;
 		}
+		// Reset input value so selecting the same file again still triggers change
+		if (event.target) {
+			event.target.value = '';
+		}
+	}
+
+	function handleCropConfirm(
+		event: CustomEvent<{ file: File; url: string; fileName: string; width: number; height: number }>
+	) {
+		const { file, url, fileName } = event.detail;
+		if (cropTargetIndex !== -1) {
+			fields[cropTargetIndex] = {
+				file,
+				fileName,
+				type: 'image',
+				src: url,
+				credits: fields[cropTargetIndex]?.credits || ''
+			};
+			fields = [...fields];
+		} else {
+			newImage = {
+				file,
+				type: 'image',
+				fileName,
+				src: url,
+				credits: newImage?.credits || ''
+			};
+		}
+		cropModalOpen = false;
+	}
+
+	function handleCropCancel() {
+		cropModalOpen = false;
 	}
 
 	/**
@@ -330,6 +354,7 @@
 						<div class="relative">
 							<input
 								type="file"
+								accept="image/*"
 								class="hidden"
 								on:change={(event) => handleImageUpload(event, -1)}
 								bind:this={coverPhotoInput}
@@ -619,6 +644,15 @@
 		</div>
 	</div>
 {/if}
+
+<ImageCropperModal
+	open={cropModalOpen}
+	imageSrc={cropModalSrc}
+	fileName={cropModalFileName}
+	preset={cropTargetIndex === -1 ? 'article-cover' : 'article-content'}
+	on:confirm={handleCropConfirm}
+	on:cancel={handleCropCancel}
+/>
 
 <style>
 	.btn {
